@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Pipeline</title>
+<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBpcGVsaW5lIiwKICAic2hvcnRfbmFtZSI6ICJQaXBlbGluZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGEwYTBhIiwKICAidGhlbWVfY29sb3IiOiAiIzBhMGEwYSIsCiAgImljb25zIjogW3sKICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCc+PHJlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIHJ4PScyMCcgZmlsbD0nIzBhMGEwYScvPjx0ZXh0IHg9JzUwJyB5PSc2NScgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1zaXplPSc1MCcgZmlsbD0nIzAwZmY4OCc+8J+nrTwvdGV4dD48L3N2Zz4iLAogICAgInNpemVzIjogIjE5MngxOTIiLAogICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICB9XQp9">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;--accent:#00ff88;--accent2:#00cc6a;--text:#e0e0e0;--text2:#888;--border:#2a2a2a;--danger:#ff4444;--warn:#ffaa00;--info:#00aaff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:70px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header h1 span{color:var(--accent)}
+.header-actions{display:flex;gap:8px}
+.header-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.97);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text2);transition:.2s;font-size:10px;gap:3px}
+.nav-item.active{color:var(--accent)}
+.nav-item .nav-icon{font-size:20px}
+.nav-item:active{transform:scale(.9)}
+
+/* Pages */
+.page{display:none;padding:12px 16px;animation:fadeIn .2s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Search */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 12px 10px 36px;border-radius:10px;font-size:14px;outline:none}
+.search-box input:focus{border-color:var(--accent)}
+.search-box::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px}
+
+/* File List */
+.file-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.file-item:active{transform:scale(.98);background:var(--bg3)}
+.file-icon{font-size:28px;flex-shrink:0;width:36px;text-align:center}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.file-arrow{color:var(--text2);font-size:16px}
+
+/* Folder */
+.folder-item{display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.folder-item:active{transform:scale(.98)}
+.folder-icon{font-size:32px}
+.folder-info{flex:1}
+.folder-name{font-size:15px;font-weight:700}
+.folder-count{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:4px;margin-bottom:12px;flex-wrap:wrap;font-size:13px}
+.breadcrumb span{cursor:pointer;color:var(--accent);padding:2px 4px;border-radius:4px}
+.breadcrumb span:hover{background:var(--bg3)}
+.breadcrumb .sep{color:var(--text2);cursor:default}
+.breadcrumb .current{color:var(--text);cursor:default}
+
+/* Viewer */
+.viewer-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column}
+.viewer-overlay.open{display:flex}
+.viewer-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.viewer-header h3{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;margin:0 8px}
+.viewer-close{background:none;border:none;color:var(--accent);font-size:24px;cursor:pointer;padding:4px 8px}
+.viewer-actions{display:flex;gap:6px}
+.viewer-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.viewer-content{flex:1;overflow:auto;padding:16px}
+.viewer-content pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.5;font-family:'SF Mono',Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+.viewer-content img{max-width:100%;border-radius:8px}
+.viewer-content audio,.viewer-content video{width:100%;border-radius:8px}
+.viewer-content table{width:100%;border-collapse:collapse;font-size:12px}
+.viewer-content th,.viewer-content td{padding:6px 8px;border:1px solid var(--border);text-align:left}
+.viewer-content th{background:var(--bg3);font-weight:600}
+.markdown-body{line-height:1.6;font-size:14px}
+.markdown-body h1,.markdown-body h2,.markdown-body h3{color:var(--accent);margin:16px 0 8px}
+.markdown-body h1{font-size:22px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.markdown-body h2{font-size:18px}
+.markdown-body h3{font-size:15px}
+.markdown-body p{margin:8px 0}
+.markdown-body code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px;font-family:'SF Mono',Monaco,Consolas,monospace}
+.markdown-body pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto}
+.markdown-body pre code{background:none;padding:0}
+.markdown-body ul,.markdown-body ol{padding-left:20px;margin:8px 0}
+.markdown-body li{margin:4px 0}
+.markdown-body a{color:var(--accent)}
+.markdown-body blockquote{border-left:3px solid var(--accent);padding-left:12px;color:var(--text2);margin:8px 0}
+.markdown-body table{width:100%;border-collapse:collapse;margin:8px 0}
+.markdown-body th,.markdown-body td{padding:8px;border:1px solid var(--border)}
+.markdown-body th{background:var(--bg3)}
+.markdown-body strong{color:#fff}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:16px}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(0,255,136,.05)}
+.upload-zone .upload-icon{font-size:48px;margin-bottom:12px}
+.upload-zone p{color:var(--text2);font-size:14px}
+.upload-zone input{display:none}
+.uploaded-files{margin-top:16px}
+
+/* Links */
+.link-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;text-decoration:none;color:var(--text)}
+.link-item:active{transform:scale(.98);background:var(--bg3)}
+.link-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
+.link-info{flex:1;min-width:0}
+.link-name{font-size:14px;font-weight:600}
+.link-url{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Section headers */
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.stat-chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.stat-chip .num{color:var(--accent);font-weight:700}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty .empty-icon{font-size:48px;margin-bottom:12px}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;z-index:300;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Loading */
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ZIP modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;max-width:500px;width:100%;max-height:80vh;overflow:auto;padding:20px}
+.modal h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.modal-close{float:right;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer}
+.zip-files{margin:12px 0}
+.zip-file{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;margin-bottom:4px;font-size:13px}
+.zip-file .zf-icon{font-size:18px}
+.zip-file .zf-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zip-file .zf-size{color:var(--text2);font-size:11px}
+.modal-actions{display:flex;gap:8px;margin-top:12px}
+.modal-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;text-align:center}
+.modal-btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+
+/* Pulse animation for live indicator */
+.live-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ <span>Pipeline</span></h1>
+  <div class="header-actions">
+    <button class="header-btn" onclick="refreshAll()">🔄</button>
+  </div>
+</div>
+
+<!-- FILES PAGE -->
+<div class="page active" id="page-files">
+  <div class="search-box">
+    <input type="text" id="file-search" placeholder="Search files..." oninput="filterFiles(this.value)">
+  </div>
+  <div class="stats-bar" id="stats-bar"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="file-list"></div>
+</div>
+
+<!-- LINKS PAGE -->
+<div class="page" id="page-links">
+  <div class="search-box">
+    <input type="text" id="link-search" placeholder="Search links..." oninput="filterLinks(this.value)">
+  </div>
+  <div id="link-list"></div>
+</div>
+
+<!-- UPLOAD PAGE -->
+<div class="page" id="page-upload">
+  <div class="section-title">📤 Upload to Pipeline</div>
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <div class="upload-icon">📁</div>
+    <p><strong>Tap to upload</strong> or drag & drop</p>
+    <p style="font-size:11px;margin-top:8px;color:var(--text2)">ZIP, DOCX, PDF, images, audio, code, any file</p>
+    <input type="file" id="file-input" multiple accept="*/*" onchange="handleUpload(this.files)">
+  </div>
+  <div class="section-title">📦 Extract ZIP</div>
+  <div class="upload-zone" onclick="document.getElementById('zip-input').click()" style="padding:20px">
+    <p><strong>Upload ZIP</strong> to extract files</p>
+    <input type="file" id="zip-input" accept=".zip" onchange="handleZipUpload(this.files)">
+  </div>
+  <div class="section-title">📋 Uploaded Files</div>
+  <div id="uploaded-list"></div>
+</div>
+
+<!-- VIEWER PAGE (shows last viewed file) -->
+<div class="page" id="page-viewer">
+  <div class="empty">
+    <div class="empty-icon">📖</div>
+    <p>Tap a file to view it here</p>
+  </div>
+</div>
+
+<!-- SEARCH PAGE -->
+<div class="page" id="page-search">
+  <div class="search-box">
+    <input type="text" id="global-search" placeholder="Search everything..." oninput="globalSearch(this.value)">
+  </div>
+  <div id="search-results"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchPage('files')">
+    <span class="nav-icon">📁</span>
+    <span>Files</span>
+  </div>
+  <div class="nav-item" onclick="switchPage('links')">
+    <span class="nav-icon">🔗</span>
+    <span>Links</span>
+  </div>
+  <div class="nav-item" onclick="switchPage('upload')">
+    <span class="nav-icon">📤</span>
+    <span>Upload</span>
+  </div>
+  <div class="nav-item" onclick="switchPage('viewer')">
+    <span class="nav-icon">📖</span>
+    <span>Viewer</span>
+  </div>
+  <div class="nav-item" onclick="switchPage('search')">
+    <span class="nav-icon">🔍</span>
+    <span>Search</span>
+  </div>
+</div>
+
+<!-- VIEWER OVERLAY -->
+<div class="viewer-overlay" id="viewer-overlay">
+  <div class="viewer-header">
+    <button class="viewer-close" onclick="closeViewer()">✕</button>
+    <h3 id="viewer-title">File</h3>
+    <div class="viewer-actions">
+      <button class="viewer-btn" onclick="downloadCurrent()">⬇️</button>
+    </div>
+  </div>
+  <div class="viewer-content" id="viewer-content"></div>
+</div>
+
+<!-- ZIP MODAL -->
+<div class="modal-overlay" id="zip-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeZipModal()">✕</button>
+    <h2>📦 ZIP Contents</h2>
+    <div id="zip-info" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+    <div class="zip-files" id="zip-files"></div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeZipModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="extractAllZip()">Extract All</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script>
+// ==========================================
+// PIPELINE - Mobile File Hub
+// ==========================================
+
+const DB_NAME = 'pipeline-db';
+const DB_VERSION = 1;
+const STORE_FILES = 'files';
+let db = null;
+let currentPath = [];
+let currentViewerFile = null;
+let currentZipFiles = [];
+
+// ==========================================
+// WORKSPACE FILE MANIFEST
+// ==========================================
+const WORKSPACE = {
+  'Projects': {
+    'AI Music Studio': {
+      type: 'folder',
+      files: [
+        { name: 'ai-music-studio.html', path: 'ai-music-studio.html', type: 'html', size: '45KB', desc: 'AI Music Studio v9.0 — beat sequencer, chord player, lyrics, effects' },
+        { name: 'songwriting-composer/', path: 'songwriting-composer/', type: 'folder', size: '-', desc: 'Songwriting composer project directory' },
+      ]
+    },
+    'Developer Products': {
+      type: 'folder',
+      files: [
+        { name: 'developer-products/', path: 'developer-products/', type: 'folder', size: '-', desc: 'Smart contracts, AI kit, SaaS boilerplate, landing page' },
+      ]
+    },
+    'Paxeer 402 Service': {
+      type: 'folder',
+      files: [
+        { name: 'paxeer-402-service/', path: 'paxeer-402-service/', type: 'folder', size: '-', desc: 'HTTP 402 payment middleware for Paxeer Network' },
+      ]
+    },
+    'Paxeer Agent Wallet': {
+      type: 'folder',
+      files: [
+        { name: 'paxeer-agent-wallet/', path: 'paxeer-agent-wallet/', type: 'folder', size: '-', desc: 'AI agent wallet with DID identity, spending policies, AgentKit' },
+      ]
+    },
+    'War Room': {
+      type: 'folder',
+      files: [
+        { name: 'war-room/', path: 'war-room/', type: 'folder', size: '-', desc: 'Marketing & sales command center dashboard' },
+      ]
+    },
+    'FieldFlow': {
+      type: 'folder',
+      files: [
+        { name: 'fieldflow/', path: 'fieldflow/', type: 'folder', size: '-', desc: 'Field service management platform' },
+      ]
+    },
+    'LootAgent': {
+      type: 'folder',
+      files: [
+        { name: 'lootagent/', path: 'lootagent/', type: 'folder', size: '-', desc: 'AI money agent for crypto users' },
+      ]
+    },
+    'REST API': {
+      type: 'folder',
+      files: [
+        { name: 'rest-api/', path: 'rest-api/', type: 'folder', size: '-', desc: 'Express.js REST API with SQLite & JWT auth' },
+      ]
+    },
+    'Voice Commander': {
+      type: 'folder',
+      files: [
+        { name: 'voice-commander/', path: 'voice-commander/', type: 'folder', size: '-', desc: 'Voice-controlled interactions with Neo' },
+      ]
+    },
+    'Halluc Plumbing': {
+      type: 'folder',
+      files: [
+        { name: 'halluc-deploy/', path: 'halluc-deploy/', type: 'folder', size: '-', desc: 'Halluc Plumbing app deployment files' },
+      ]
+    },
+  },
+  'Research': {
+    files: [
+      { name: 'paxeer-research.md', path: 'paxeer-research.md', type: 'md', size: '15KB', desc: 'Paxeer ecosystem research — LayerX, 402LXP, Deus, MCP bridges' },
+    ]
+  },
+  'Knowledge Base': {
+    files: [
+      { name: 'knowledge/', path: 'knowledge/', type: 'folder', size: '-', desc: 'Structured knowledge base — sources, analysis, concepts, entities' },
+    ]
+  },
+  'Skills': {
+    files: [
+      { name: 'skills/', path: 'skills/', type: 'folder', size: '-', desc: '128+ reusable skills across 16+ domains' },
+    ]
+  },
+  'Memory': {
+    files: [
+      { name: 'MEMORY.md', path: 'MEMORY.md', type: 'md', size: '8KB', desc: 'Long-term memory index — preferences, decisions, key info' },
+      { name: 'memory/', path: 'memory/', type: 'folder', size: '-', desc: 'Daily memory files' },
+    ]
+  },
+  'Config': {
+    files: [
+      { name: 'AGENT.md', path: 'AGENT.md', type: 'md', size: '2KB', desc: 'Neo identity and personality config' },
+      { name: 'USER.md', path: 'USER.md', type: 'md', size: '1KB', desc: 'User identity info' },
+      { name: 'RULE.md', path: 'RULE.md', type: 'md', size: '3KB', desc: 'Workspace rules and conventions' },
+      { name: 'package.json', path: 'package.json', type: 'json', size: '1KB', desc: 'Node.js package config' },
+      { name: 'manifest.json', path: 'manifest.json', type: 'json', size: '1KB', desc: 'PWA manifest' },
+    ]
+  },
+  'Audio': {
+    files: [
+      { name: 'luca-theme.wav', path: 'luca-theme.wav', type: 'wav', size: '1.2MB', desc: "Luca's Theme — anime-style instrumental" },
+      { name: 'luca-full-song.wav', path: 'luca-full-song.wav', type: 'wav', size: '8MB', desc: "Luca's Theme — full song with vocals" },
+      { name: 'tone.wav', path: 'tone.wav', type: 'wav', size: '50KB', desc: 'Test tone audio file' },
+    ]
+  },
+  'Docs': {
+    files: [
+      { name: 'README.md', path: 'README.md', type: 'md', size: '2KB', desc: 'Project README' },
+      { name: 'CHANGELOG.md', path: 'CHANGELOG.md', type: 'md', size: '3KB', desc: 'Change log' },
+    ]
+  },
+};
+
+// ==========================================
+// LINKS HUB
+// ==========================================
+const LINKS = {
+  'GitHub Repos': [
+    { name: 'Matrix Workspace', url: 'https://github.com/jtjustinktaylor-lgtm/matrix-workspace', icon: '📦', desc: 'Halluc Plumbing app + site' },
+    { name: 'FieldBase', url: 'https://github.com/jtjustinktaylor-lgtm/fieldbase', icon: '🏗️', desc: 'Field service management platform' },
+    { name: 'LootAgent', url: 'https://github.com/jtjustinktaylor-lgtm/lootagent', icon: '🤖', desc: 'AI money agent' },
+    { name: 'Songwriting Composer', url: 'https://github.com/jtjustinktaylor-lgtm/songwriting-composer', icon: '🎵', desc: 'AI Music Studio' },
+    { name: 'Paxeer 402 Service', url: 'https://github.com/jtjustinktaylor-lgtm/paxeer-402-service', icon: '💳', desc: 'HTTP 402 payment middleware' },
+    { name: 'Paxeer Agent Wallet', url: 'https://github.com/jtjustinktaylor-lgtm/paxeer-agent-wallet', icon: '👛', desc: 'AI agent wallet + AgentKit' },
+  ],
+  'Live Apps': [
+    { name: 'AI Music Studio', url: 'https://jtjustinktaylor-lgtm.github.io/songwriting-composer/ai-music-studio.html', icon: '🎵', desc: 'Beat sequencer, chord player, AI generation' },
+  ],
+  'Blockchain': [
+    { name: 'Paxeer Explorer', url: 'https://paxscan.io', icon: '🔍', desc: 'Block explorer for Paxeer Network' },
+    { name: 'Paxeer RPC', url: 'https://public-rpc.paxeer.app/evm/reference', icon: '⚡', desc: 'Public RPC endpoint' },
+    { name: 'Main Wallet', url: 'https://paxscan.io/address/0x2Baeb821b0F2b47be442f3c68074b8B87B3f8744', icon: '🦊', desc: '0x2Baeb...8744' },
+    { name: 'Agentic Wallet', url: 'https://paxscan.io/address/0xC375f6f69f55DAD35484613db63Bb2585f878777', icon: '🤖', desc: '0xC375f...8777' },
+  ],
+  'Matrix / Neo': [
+    { name: 'Matrix Neo Repo', url: 'https://github.com/paxlabs-inc/matrix-core/tree/main/neo', icon: '💊', desc: 'Neo agent core' },
+    { name: 'Matrix Neocortex', url: 'https://github.com/paxlabs-inc/matrix-core/tree/main/neocortex', icon: '🧠', desc: 'Neocortex architecture' },
+  ],
+};
+
+// ==========================================
+// FILE TYPE HELPERS
+// ==========================================
+const FILE_ICONS = {
+  md: '📝', txt: '📄', json: '📋', js: '⚡', ts: '💎', py: '🐍', html: '🌐', css: '🎨',
+  svg: '🖼️', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', webp: '🖼️',
+  mp3: '🎵', wav: '🎵', ogg: '🎵', m4a: '🎵',
+  mp4: '🎬', webm: '🎬', mov: '🎬',
+  pdf: '📕', docx: '📘', doc: '📘', xlsx: '📊', csv: '📊',
+  zip: '📦', tar: '📦', gz: '📦',
+  sol: '📜', yaml: '📋', yml: '📋', xml: '📋', sh: '⚙️',
+  folder: '📁', link: '🔗',
+};
+
+function getFileIcon(type) {
+  return FILE_ICONS[type] || '📄';
+}
+
+function getExt(name) {
+  const parts = name.split('.');
+  return parts.length > 1 ? parts.pop().toLowerCase() : '';
+}
+
+function isViewable(ext) {
+  return ['md','txt','json','js','ts','py','html','css','svg','yaml','yml','xml','sh','sol','csv','rtf','log','cfg','ini','env','gitignore','markdown'].includes(ext) ||
+    ['png','jpg','jpeg','gif','webp','svg','bmp'].includes(ext) ||
+    ['mp3','wav','ogg','m4a','flac'].includes(ext) ||
+    ['mp4','webm','mov'].includes(ext) ||
+    ['pdf'].includes(ext);
+}
+
+// ==========================================
+// INDEXEDDB
+// ==========================================
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_FILES)) {
+        db.createObjectStore(STORE_FILES, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbPut(file) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readwrite');
+    tx.objectStore(STORE_FILES).put(file);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readonly');
+    const req = tx.objectStore(STORE_FILES).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbGet(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readonly');
+    const req = tx.objectStore(STORE_FILES).get(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbDelete(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readwrite');
+    tx.objectStore(STORE_FILES).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item')[['files','links','upload','viewer','search'].indexOf(name)].classList.add('active');
+  if (name === 'upload') renderUploadedFiles();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==========================================
+// FILE BROWSER
+// ==========================================
+function renderFileBrowser() {
+  const container = document.getElementById('file-list');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const statsBar = document.getElementById('stats-bar');
+
+  // Stats
+  let totalFiles = 0;
+  let totalLinks = 0;
+  Object.values(WORKSPACE).forEach(cat => {
+    if (cat.files) totalFiles += cat.files.length;
+    else Object.values(cat).forEach(sub => { if (sub.files) totalFiles += sub.files.length; });
+  });
+  Object.values(LINKS).forEach(arr => totalLinks += arr.length);
+
+  statsBar.innerHTML = `
+    <div class="stat-chip">📁 <span class="num">${totalFiles}</span> files</div>
+    <div class="stat-chip">🔗 <span class="num">${totalLinks}</span> links</div>
+    <div class="stat-chip">💾 <span class="num" id="upload-count">0</span> uploaded</div>
+  `;
+
+  // Breadcrumb
+  if (currentPath.length === 0) {
+    breadcrumb.innerHTML = '<span class="current">🏠 Home</span>';
+  } else {
+    let html = '<span onclick="navigateTo([])">🏠</span>';
+    currentPath.forEach((p, i) => {
+      html += '<span class="sep">›</span>';
+      if (i === currentPath.length - 1) {
+        html += `<span class="current">${p}</span>`;
+      } else {
+        html += `<span onclick="navigateTo(${JSON.stringify(currentPath.slice(0, i + 1))})">${p}</span>`;
+      }
+    });
+    breadcrumb.innerHTML = html;
+  }
+
+  // Navigate to current path depth
+  let items = [];
+  if (currentPath.length === 0) {
+    // Top level categories
+    Object.entries(WORKSPACE).forEach(([catName, catData]) => {
+      if (catData.files) {
+        items.push({ name: catName, type: 'category', count: catData.files.length, icon: '📂' });
+      } else {
+        const subCount = Object.keys(catData).length;
+        items.push({ name: catName, type: 'category', count: subCount, icon: '📂' });
+      }
+    });
+  } else if (currentPath.length === 1) {
+    const cat = WORKSPACE[currentPath[0]];
+    if (cat && cat.files) {
+      cat.files.forEach(f => items.push(f));
+    } else if (cat) {
+      Object.entries(cat).forEach(([subName, subData]) => {
+        if (subData.files) {
+          items.push({ name: subName, type: 'subfolder', count: subData.files.length, icon: '📂', files: subData.files });
+        }
+      });
+    }
+  } else if (currentPath.length === 2) {
+    const cat = WORKSPACE[currentPath[0]];
+    if (cat && !cat.files) {
+      const sub = cat[currentPath[1]];
+      if (sub && sub.files) {
+        sub.files.forEach(f => items.push(f));
+      }
+    }
+  }
+
+  container.innerHTML = items.map(item => {
+    if (item.type === 'category' || item.type === 'subfolder') {
+      return `<div class="folder-item" onclick="navigateTo(${JSON.stringify([...currentPath, item.name])})">
+        <span class="folder-icon">${item.icon || '📂'}</span>
+        <div class="folder-info">
+          <div class="folder-name">${item.name}</div>
+          <div class="folder-count">${item.count} items</div>
+        </div>
+        <span class="file-arrow">›</span>
+      </div>`;
+    }
+    const ext = getExt(item.name);
+    const icon = item.type === 'folder' ? '📁' : getFileIcon(ext);
+    const isFolder = item.type === 'folder';
+    const clickAction = isFolder
+      ? `navigateTo(${JSON.stringify([...currentPath, item.name.replace(/\/$/, '')])})`
+      : `viewWorkspaceFile('${item.path}', '${item.name}', '${item.type}')`;
+    return `<div class="file-item" onclick="${clickAction}">
+      <span class="file-icon">${icon}</span>
+      <div class="file-info">
+        <div class="file-name">${item.name}</div>
+        <div class="file-meta">${item.desc || item.size || ''}</div>
+      </div>
+      <span class="file-arrow">${isFolder ? '›' : '👁️'}</span>
+    </div>`;
+  }).join('');
+}
+
+function navigateTo(path) {
+  currentPath = path;
+  renderFileBrowser();
+}
+
+function filterFiles(query) {
+  const items = document.querySelectorAll('#file-list .file-item, #file-list .folder-item');
+  const q = query.toLowerCase();
+  items.forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+// ==========================================
+// WORKSPACE FILE VIEWER
+// ==========================================
+async function viewWorkspaceFile(path, name, type) {
+  const ext = getExt(name);
+
+  // For workspace files, we'll show a preview with info and link to GitHub
+  const overlay = document.getElementById('viewer-overlay');
+  const content = document.getElementById('viewer-content');
+  const title = document.getElementById('viewer-title');
+
+  title.textContent = name;
+  currentViewerFile = { name, path, type, source: 'workspace' };
+
+  // Show file info card with description
+  const fileDesc = findFileDesc(path, name);
+
+  content.innerHTML = `
+    <div style="text-align:center;padding:20px">
+      <div style="font-size:64px;margin-bottom:16px">${getFileIcon(ext)}</div>
+      <h2 style="color:var(--accent);margin-bottom:8px">${name}</h2>
+      <p style="color:var(--text2);margin-bottom:16px">${fileDesc || 'Workspace file'}</p>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Path</div>
+        <div style="font-size:13px;font-family:monospace;color:var(--accent)">${path}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:12px;margin-bottom:4px">Type</div>
+        <div style="font-size:13px">${type.toUpperCase()}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" style="display:inline-block;padding:10px 20px;background:var(--accent);color:#000;border-radius:10px;text-decoration:none;font-weight:600;font-size:13px">📂 View on GitHub</a>
+        <button onclick="copyPath('${path}')" style="padding:10px 20px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">📋 Copy Path</button>
+      </div>
+    </div>
+  `;
+
+  overlay.classList.add('open');
+}
+
+function findFileDesc(path, name) {
+  for (const [catName, catData] of Object.entries(WORKSPACE)) {
+    if (catData.files) {
+      const f = catData.files.find(f => f.name === name);
+      if (f) return f.desc;
+    } else {
+      for (const [subName, subData] of Object.entries(catData)) {
+        if (subData && subData.files) {
+          const f = subData.files.find(f => f.name === name);
+          if (f) return f.desc;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function copyPath(path) {
+  navigator.clipboard.writeText(path).then(() => toast('📋 Path copied!'));
+}
+
+// ==========================================
+// VIEWER
+// ==========================================
+async function viewFile(file) {
+  const overlay = document.getElementById('viewer-overlay');
+  const content = document.getElementById('viewer-content');
+  const title = document.getElementById('viewer-title');
+
+  title.textContent = file.name;
+  currentViewerFile = file;
+  content.innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:12px;color:var(--text2)">Loading...</p></div>';
+  overlay.classList.add('open');
+
+  const ext = getExt(file.name);
+
+  try {
+    if (['png','jpg','jpeg','gif','webp','bmp'].includes(ext)) {
+      const url = URL.createObjectURL(file.blob);
+      content.innerHTML = `<img src="${url}" alt="${file.name}" style="max-width:100%">`;
+    }
+    else if (['mp3','wav','ogg','m4a','flac'].includes(ext)) {
+      const url = URL.createObjectURL(file.blob);
+      content.innerHTML = `
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:64px;margin-bottom:16px">🎵</div>
+          <h3 style="margin-bottom:16px">${file.name}</h3>
+          <audio controls src="${url}" style="width:100%;max-width:400px"></audio>
+        </div>`;
+    }
+    else if (['mp4','webm','mov'].includes(ext)) {
+      const url = URL.createObjectURL(file.blob);
+      content.innerHTML = `<video controls src="${url}" style="width:100%;border-radius:8px"></video>`;
+    }
+    else if (ext === 'pdf') {
+      const url = URL.createObjectURL(file.blob);
+      content.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:none;border-radius:8px"></iframe>`;
+    }
+    else if (ext === 'md') {
+      const text = await file.blob.text();
+      content.innerHTML = `<div class="markdown-body">${marked.parse(text)}</div>`;
+    }
+    else if (['txt','log','rtf','env','gitignore','cfg','ini','markdown'].includes(ext)) {
+      const text = await file.blob.text();
+      content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+    }
+    else if (['json'].includes(ext)) {
+      const text = await file.blob.text();
+      try {
+        const pretty = JSON.stringify(JSON.parse(text), null, 2);
+        content.innerHTML = `<pre>${syntaxHighlight(pretty)}</pre>`;
+      } catch {
+        content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+      }
+    }
+    else if (['js','ts','py','html','css','sh','sol','yaml','yml','xml','jsx','tsx','rb','go','rs','c','cpp','java'].includes(ext)) {
+      const text = await file.blob.text();
+      content.innerHTML = `<pre>${syntaxHighlight(escapeHtml(text))}</pre>`;
+    }
+    else if (ext === 'csv') {
+      const text = await file.blob.text();
+      content.innerHTML = csvToTable(text);
+    }
+    else if (ext === 'svg') {
+      const text = await file.blob.text();
+      content.innerHTML = text;
+    }
+    else {
+      // Try text fallback
+      try {
+        const text = await file.blob.text();
+        if (text.length < 500000 && /[\x20-\x7E\n\r\t]/.test(text.slice(0, 1000))) {
+          content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+        } else {
+          throw new Error('binary');
+        }
+      } catch {
+        const url = URL.createObjectURL(file.blob);
+        content.innerHTML = `
+          <div style="text-align:center;padding:40px">
+            <div style="font-size:64px;margin-bottom:16px">${getFileIcon(ext)}</div>
+            <h3>${file.name}</h3>
+            <p style="color:var(--text2);margin:8px 0">${file.blob.size ? formatSize(file.blob.size) : ''}</p>
+            <a href="${url}" download="${file.name}" style="display:inline-block;padding:12px 24px;background:var(--accent);color:#000;border-radius:10px;text-decoration:none;font-weight:600;margin-top:12px">⬇️ Download</a>
+          </div>`;
+      }
+    }
+  } catch (err) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Error loading file: ${err.message}</p></div>`;
+  }
+}
+
+function closeViewer() {
+  document.getElementById('viewer-overlay').classList.remove('open');
+}
+
+function downloadCurrent() {
+  if (!currentViewerFile) return;
+  if (currentViewerFile.source === 'workspace') {
+    const githubUrl = `https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${currentViewerFile.path}`;
+    window.open(githubUrl, '_blank');
+    toast('Opening on GitHub...');
+    return;
+  }
+  if (currentViewerFile.blob) {
+    const url = URL.createObjectURL(currentViewerFile.blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentViewerFile.name;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('⬇️ Downloading...');
+  }
+}
+
+// ==========================================
+// UPLOAD
+// ==========================================
+async function handleUpload(files) {
+  for (const file of files) {
+    const data = {
+      id: 'upload-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      ext: getExt(file.name),
+      blob: file,
+      uploadedAt: Date.now(),
+    };
+    await dbPut(data);
+  }
+  toast(`📤 ${files.length} file(s) uploaded!`);
+  renderUploadedFiles();
+  updateUploadCount();
+}
+
+async function renderUploadedFiles() {
+  const container = document.getElementById('uploaded-list');
+  const files = await dbGetAll();
+
+  if (files.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No uploaded files yet</p></div>';
+    return;
+  }
+
+  files.sort((a, b) => b.uploadedAt - a.uploadedAt);
+  container.innerHTML = files.map(f => `
+    <div class="file-item">
+      <span class="file-icon">${getFileIcon(f.ext)}</span>
+      <div class="file-info" onclick="viewFile(${JSON.stringify({name:f.name,blob:f.blob})})">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${formatSize(f.size)} • ${new Date(f.uploadedAt).toLocaleDateString()}</div>
+      </div>
+      <button onclick="deleteUploaded('${f.id}')" style="background:none;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:4px 8px">🗑️</button>
+    </div>
+  `).join('');
+}
+
+async function deleteUploaded(id) {
+  await dbDelete(id);
+  renderUploadedFiles();
+  updateUploadCount();
+  toast('🗑️ File deleted');
+}
+
+async function updateUploadCount() {
+  const files = await dbGetAll();
+  const el = document.getElementById('upload-count');
+  if (el) el.textContent = files.length;
+}
+
+// ==========================================
+// ZIP EXTRACTION
+// ==========================================
+async function handleZipUpload(files) {
+  if (!files.length) return;
+  const file = files[0];
+
+  try {
+    const zip = await JSZip.loadAsync(file);
+    currentZipFiles = [];
+    zip.forEach((path, entry) => {
+      if (!entry.dir) {
+        currentZipFiles.push({ path, entry, name: path.split('/').pop() });
+      }
+    });
+
+    document.getElementById('zip-info').textContent = `${file.name} — ${currentZipFiles.length} files`;
+    document.getElementById('zip-files').innerHTML = currentZipFiles.map((f, i) => `
+      <div class="zip-file">
+        <span class="zf-icon">${getFileIcon(getExt(f.name))}</span>
+        <span class="zf-name">${f.path}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('zip-modal').classList.add('open');
+  } catch (err) {
+    toast('❌ Not a valid ZIP file');
+  }
+}
+
+function closeZipModal() {
+  document.getElementById('zip-modal').classList.remove('open');
+}
+
+async function extractAllZip() {
+  closeZipModal();
+  toast('📦 Extracting...');
+
+  for (const f of currentZipFiles) {
+    const blob = await f.entry.async('blob');
+    const data = {
+      id: 'zip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      name: f.name,
+      size: blob.size,
+      type: blob.type,
+      ext: getExt(f.name),
+      blob: blob,
+      uploadedAt: Date.now(),
+      source: 'zip',
+    };
+    await dbPut(data);
+  }
+
+  toast(`✅ ${currentZipFiles.length} files extracted!`);
+  renderUploadedFiles();
+  updateUploadCount();
+  currentZipFiles = [];
+}
+
+// ==========================================
+// LINKS
+// ==========================================
+function renderLinks() {
+  const container = document.getElementById('link-list');
+  let html = '';
+
+  Object.entries(LINKS).forEach(([category, links]) => {
+    html += `<div class="section-title">${category}</div>`;
+    links.forEach(link => {
+      html += `<a class="link-item" href="${link.url}" target="_blank" rel="noopener">
+        <span class="link-icon">${link.icon}</span>
+        <div class="link-info">
+          <div class="link-name">${link.name}</div>
+          <div class="link-url">${link.desc || link.url}</div>
+        </div>
+        <span class="file-arrow">↗</span>
+      </a>`;
+    });
+  });
+
+  container.innerHTML = html;
+}
+
+function filterLinks(query) {
+  const items = document.querySelectorAll('#link-list .link-item, #link-list .section-title');
+  const q = query.toLowerCase();
+  let showSection = true;
+
+  items.forEach(el => {
+    if (el.classList.contains('section-title')) {
+      showSection = true;
+      let nextEl = el.nextElementSibling;
+      let hasVisible = false;
+      while (nextEl && !nextEl.classList.contains('section-title')) {
+        if (nextEl.textContent.toLowerCase().includes(q)) hasVisible = true;
+        nextEl = nextEl.nextElementSibling;
+      }
+      el.style.display = hasVisible || !query ? '' : 'none';
+    } else {
+      const text = el.textContent.toLowerCase();
+      el.style.display = text.includes(q) || !query ? '' : 'none';
+    }
+  });
+}
+
+// ==========================================
+// GLOBAL SEARCH
+// ==========================================
+function globalSearch(query) {
+  const container = document.getElementById('search-results');
+  if (!query || query.length < 2) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Search files, links, and uploaded content</p></div>';
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const results = [];
+
+  // Search workspace
+  Object.entries(WORKSPACE).forEach(([catName, catData]) => {
+    if (catData.files) {
+      catData.files.forEach(f => {
+        if (f.name.toLowerCase().includes(q) || (f.desc && f.desc.toLowerCase().includes(q))) {
+          results.push({ ...f, category: catName, source: 'workspace' });
+        }
+      });
+    } else {
+      Object.entries(catData).forEach(([subName, subData]) => {
+        if (subData && subData.files) {
+          subData.files.forEach(f => {
+            if (f.name.toLowerCase().includes(q) || (f.desc && f.desc.toLowerCase().includes(q))) {
+              results.push({ ...f, category: `${catName} > ${subName}`, source: 'workspace' });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  // Search links
+  Object.entries(LINKS).forEach(([catName, links]) => {
+    links.forEach(link => {
+      if (link.name.toLowerCase().includes(q) || link.desc.toLowerCase().includes(q) || link.url.toLowerCase().includes(q)) {
+        results.push({ name: link.name, desc: link.desc, url: link.url, icon: link.icon, category: catName, source: 'link' });
+      }
+    });
+  });
+
+  if (results.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🤷</div><p>No results found</p></div>';
+    return;
+  }
+
+  container.innerHTML = results.map(r => {
+    if (r.source === 'link') {
+      return `<a class="link-item" href="${r.url}" target="_blank" rel="noopener">
+        <span class="link-icon">${r.icon}</span>
+        <div class="link-info">
+          <div class="link-name">${r.name}</div>
+          <div class="link-url">${r.category} • ${r.desc}</div>
+        </div>
+        <span class="file-arrow">↗</span>
+      </a>`;
+    }
+    const ext = getExt(r.name);
+    return `<div class="file-item" onclick="viewWorkspaceFile('${r.path}', '${r.name}', '${r.type}')">
+      <span class="file-icon">${getFileIcon(ext)}</span>
+      <div class="file-info">
+        <div class="file-name">${r.name}</div>
+        <div class="file-meta">${r.category} • ${r.desc || r.size || ''}</div>
+      </div>
+      <span class="file-arrow">👁️</span>
+    </div>`;
+  }).join('');
+}
+
+// ==========================================
+// UTILS
+// ==========================================
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function syntaxHighlight(code) {
+  return code
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/(".*?")/g, '<span style="color:#ce9178">$1</span>')
+    .replace(/\b(\d+)\b/g, '<span style="color:#b5cea8">$1</span>')
+    .replace(/\b(true|false|null|undefined|None|True|False)\b/g, '<span style="color:#569cd6">$1</span>')
+    .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm, '<span style="color:#6a9955">$1</span>')
+    .replace(/\b(function|const|let|var|return|if|else|for|while|class|import|export|from|def|async|await|try|catch|throw|new|this)\b/g, '<span style="color:#c586c0">$1</span>');
+}
+
+function csvToTable(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length === 0) return '<p>Empty CSV</p>';
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  let html = '<table><thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+    html += '<tr>' + cols.map(c => `<td>${escapeHtml(c)}</td>`).join('') + '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function refreshAll() {
+  renderFileBrowser();
+  renderLinks();
+  updateUploadCount();
+  toast('🔄 Refreshed');
+}
+
+// ==========================================
+// DRAG & DROP
+// ==========================================
+function setupDragDrop() {
+  const zone = document.getElementById('upload-zone');
+  if (!zone) return;
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      const hasZip = Array.from(files).some(f => f.name.endsWith('.zip'));
+      if (hasZip && files.length === 1) {
+        handleZipUpload(files);
+      } else {
+        handleUpload(files);
+      }
+    }
+  });
+}
+
+// ==========================================
+// INIT
+// ==========================================
+async function init() {
+  await initDB();
+  renderFileBrowser();
+  renderLinks();
+  updateUploadCount();
+  setupDragDrop();
+}
+
+init();
+</script>
+</body>
+</html>
