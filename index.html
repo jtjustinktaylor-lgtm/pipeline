@@ -2,261 +2,225 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0a">
 <title>Pipeline</title>
-<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBpcGVsaW5lIiwKICAic2hvcnRfbmFtZSI6ICJQaXBlbGluZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGEwYTBhIiwKICAidGhlbWVfY29sb3IiOiAiIzBhMGEwYSIsCiAgImljb25zIjogW3sKICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCc+PHJlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIHJ4PScyMCcgZmlsbD0nIzBhMGEwYScvPjx0ZXh0IHg9JzUwJyB5PSc2NScgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1zaXplPSc1MCcgZmlsbD0nIzAwZmY4OCc+8J+nrTwvdGV4dD48L3N2Zz4iLAogICAgInNpemVzIjogIjE5MngxOTIiLAogICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICB9XQp9">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;--accent:#00ff88;--accent2:#00cc6a;--text:#e0e0e0;--text2:#888;--border:#2a2a2a;--danger:#ff4444;--warn:#ffaa00;--info:#00aaff}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:70px}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+:root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;--accent:#00ff88;--accent2:#00cc6a;--accent-dim:rgba(0,255,136,.1);--text:#e0e0e0;--text2:#888;--border:#2a2a2a;--danger:#ff4444;--warn:#ffaa00;--info:#00aaff;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:80px;-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+a{color:var(--accent);text-decoration:none}
 
-/* Header */
-.header{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
-.header h1 span{color:var(--accent)}
-.header-actions{display:flex;gap:8px}
-.header-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer}
+.header{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.header h1{font-size:17px;font-weight:800;display:flex;align-items:center;gap:6px;letter-spacing:-.3px}
+.header h1 .logo{color:var(--accent)}
+.header-right{display:flex;gap:6px;align-items:center}
+.offline-badge{font-size:10px;background:var(--warn);color:#000;padding:2px 8px;border-radius:10px;font-weight:700;display:none}
+.offline-badge.show{display:inline-block}
+.hdr-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
 
-/* Bottom Nav */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.97);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text2);transition:.2s;font-size:10px;gap:3px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:max(env(safe-area-inset-bottom),8px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 2px;cursor:pointer;color:var(--text2);transition:.15s;font-size:9px;gap:2px;font-weight:600;letter-spacing:.3px}
 .nav-item.active{color:var(--accent)}
-.nav-item .nav-icon{font-size:20px}
-.nav-item:active{transform:scale(.9)}
+.nav-item .ni{font-size:20px;line-height:1}
+.nav-item:active{transform:scale(.85)}
 
-/* Pages */
-.page{display:none;padding:12px 16px;animation:fadeIn .2s}
+.page{display:none;padding:12px 16px;animation:fadeUp .15s ease}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* Search */
 .search-box{position:relative;margin-bottom:12px}
-.search-box input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 12px 10px 36px;border-radius:10px;font-size:14px;outline:none}
-.search-box input:focus{border-color:var(--accent)}
-.search-box::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px}
+.search-box input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 12px 10px 38px;border-radius:var(--radius);font-size:14px;outline:none;transition:.2s}
+.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
+.search-box .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5}
 
-/* File List */
-.file-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s}
-.file-item:active{transform:scale(.98);background:var(--bg3)}
-.file-icon{font-size:28px;flex-shrink:0;width:36px;text-align:center}
-.file-info{flex:1;min-width:0}
-.file-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file-meta{font-size:11px;color:var(--text2);margin-top:2px}
-.file-arrow{color:var(--text2);font-size:16px}
+.stats{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.stats::-webkit-scrollbar{display:none}
+.chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.chip b{color:var(--accent)}
 
-/* Folder */
-.folder-item{display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s}
-.folder-item:active{transform:scale(.98)}
-.folder-icon{font-size:32px}
-.folder-info{flex:1}
-.folder-name{font-size:15px;font-weight:700}
-.folder-count{font-size:11px;color:var(--text2);margin-top:2px}
+.breadcrumb{display:flex;align-items:center;gap:2px;margin-bottom:10px;flex-wrap:wrap;font-size:12px}
+.breadcrumb span{cursor:pointer;color:var(--accent);padding:3px 6px;border-radius:6px}
+.breadcrumb span:active{background:var(--accent-dim)}
+.breadcrumb .sep{color:var(--text2);cursor:default;padding:0 2px}
+.breadcrumb .cur{color:var(--text);cursor:default;font-weight:600}
 
-/* Breadcrumb */
-.breadcrumb{display:flex;align-items:center;gap:4px;margin-bottom:12px;flex-wrap:wrap;font-size:13px}
-.breadcrumb span{cursor:pointer;color:var(--accent);padding:2px 4px;border-radius:4px}
-.breadcrumb span:hover{background:var(--bg3)}
-.breadcrumb .sep{color:var(--text2);cursor:default}
-.breadcrumb .current{color:var(--text);cursor:default}
-
-/* Viewer */
-.viewer-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column}
-.viewer-overlay.open{display:flex}
-.viewer-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
-.viewer-header h3{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;margin:0 8px}
-.viewer-close{background:none;border:none;color:var(--accent);font-size:24px;cursor:pointer;padding:4px 8px}
-.viewer-actions{display:flex;gap:6px}
-.viewer-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
-.viewer-content{flex:1;overflow:auto;padding:16px}
-.viewer-content pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.5;font-family:'SF Mono',Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
-.viewer-content img{max-width:100%;border-radius:8px}
-.viewer-content audio,.viewer-content video{width:100%;border-radius:8px}
-.viewer-content table{width:100%;border-collapse:collapse;font-size:12px}
-.viewer-content th,.viewer-content td{padding:6px 8px;border:1px solid var(--border);text-align:left}
-.viewer-content th{background:var(--bg3);font-weight:600}
-.markdown-body{line-height:1.6;font-size:14px}
-.markdown-body h1,.markdown-body h2,.markdown-body h3{color:var(--accent);margin:16px 0 8px}
-.markdown-body h1{font-size:22px;border-bottom:1px solid var(--border);padding-bottom:8px}
-.markdown-body h2{font-size:18px}
-.markdown-body h3{font-size:15px}
-.markdown-body p{margin:8px 0}
-.markdown-body code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px;font-family:'SF Mono',Monaco,Consolas,monospace}
-.markdown-body pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto}
-.markdown-body pre code{background:none;padding:0}
-.markdown-body ul,.markdown-body ol{padding-left:20px;margin:8px 0}
-.markdown-body li{margin:4px 0}
-.markdown-body a{color:var(--accent)}
-.markdown-body blockquote{border-left:3px solid var(--accent);padding-left:12px;color:var(--text2);margin:8px 0}
-.markdown-body table{width:100%;border-collapse:collapse;margin:8px 0}
-.markdown-body th,.markdown-body td{padding:8px;border:1px solid var(--border)}
-.markdown-body th{background:var(--bg3)}
-.markdown-body strong{color:#fff}
-
-/* Upload */
-.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:16px}
-.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(0,255,136,.05)}
-.upload-zone .upload-icon{font-size:48px;margin-bottom:12px}
-.upload-zone p{color:var(--text2);font-size:14px}
-.upload-zone input{display:none}
-.uploaded-files{margin-top:16px}
-
-/* Links */
-.link-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;text-decoration:none;color:var(--text)}
-.link-item:active{transform:scale(.98);background:var(--bg3)}
-.link-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
-.link-info{flex:1;min-width:0}
-.link-name{font-size:14px;font-weight:600}
-.link-url{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* Section headers */
-.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* Stats bar */
-.stats-bar{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
-.stat-chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px}
-.stat-chip .num{color:var(--accent);font-weight:700}
+.folder-item{display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;cursor:pointer;transition:.15s}
+.folder-item:active{transform:scale(.98);border-color:var(--accent)}
+.folder-item .fi{font-size:28px;flex-shrink:0}
+.folder-item .finfo{flex:1;min-width:0}
+.folder-item .fn{font-size:14px;font-weight:700}
+.folder-item .fc{font-size:11px;color:var(--text2);margin-top:2px}
+.folder-item .arrow{color:var(--text2);font-size:18px}
 
-/* Empty state */
-.empty{text-align:center;padding:40px 20px;color:var(--text2)}
-.empty .empty-icon{font-size:48px;margin-bottom:12px}
+.file-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;cursor:pointer;transition:.15s}
+.file-item:active{transform:scale(.98);background:var(--bg3)}
+.file-item .fi{font-size:24px;flex-shrink:0;width:30px;text-align:center}
+.file-item .finfo{flex:1;min-width:0}
+.file-item .fn{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-item .fm{font-size:10px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-item .arrow{color:var(--text2);font-size:14px;flex-shrink:0}
 
-/* Toast */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;z-index:300;opacity:0;transition:.3s;pointer-events:none}
-.toast.show{opacity:1}
+.viewer-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column}
+.viewer-overlay.open{display:flex}
+.v-header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.v-close{background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:4px 8px}
+.v-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.v-actions{display:flex;gap:4px}
+.v-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;white-space:nowrap}
+.v-content{flex:1;overflow:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.v-content pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.5;font-family:'SF Mono',Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.v-content img{max-width:100%;border-radius:8px}
+.v-content audio,.v-content video{width:100%;border-radius:8px}
+.v-content table{width:100%;border-collapse:collapse;font-size:12px}
+.v-content th,.v-content td{padding:6px 8px;border:1px solid var(--border);text-align:left}
+.v-content th{background:var(--bg3);font-weight:600}
 
-/* Loading */
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.md-body{line-height:1.65;font-size:14px}
+.md-body h1,.md-body h2,.md-body h3{color:var(--accent);margin:16px 0 8px}
+.md-body h1{font-size:20px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.md-body h2{font-size:17px}
+.md-body h3{font-size:14px}
+.md-body p{margin:8px 0}
+.md-body code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;font-family:'SF Mono',Monaco,Consolas,monospace}
+.md-body pre{background:var(--bg2);padding:12px;border-radius:8px;overflow-x:auto}
+.md-body pre code{background:none;padding:0}
+.md-body ul,.md-body ol{padding-left:20px;margin:8px 0}
+.md-body li{margin:3px 0}
+.md-body a{color:var(--accent)}
+.md-body blockquote{border-left:3px solid var(--accent);padding-left:12px;color:var(--text2);margin:8px 0}
+.md-body table{width:100%;border-collapse:collapse;margin:8px 0}
+.md-body th,.md-body td{padding:8px;border:1px solid var(--border)}
+.md-body th{background:var(--bg3)}
+.md-body strong{color:#fff}
+.md-body hr{border:none;border-top:1px solid var(--border);margin:16px 0}
 
-/* ZIP modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:32px 16px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:12px}
+.upload-zone:active,.upload-zone.dragover{border-color:var(--accent);background:var(--accent-dim)}
+.upload-zone .uz-icon{font-size:40px;margin-bottom:8px}
+.upload-zone p{color:var(--text2);font-size:13px}
+.upload-zone input{display:none}
+
+.link-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;cursor:pointer;transition:.15s;color:var(--text);text-decoration:none}
+.link-item:active{transform:scale(.98);background:var(--bg3)}
+.link-item .li{font-size:22px;width:30px;text-align:center;flex-shrink:0}
+.link-item .linfo{flex:1;min-width:0}
+.link-item .ln{font-size:13px;font-weight:600}
+.link-item .lu{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-item .arrow{color:var(--text2);font-size:14px;flex-shrink:0}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;max-width:500px;width:100%;max-height:80vh;overflow:auto;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-height:80vh;overflow:auto;padding:20px;padding-bottom:max(20px,env(safe-area-inset-bottom));animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 .modal h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .modal-close{float:right;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer}
-.zip-files{margin:12px 0}
-.zip-file{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;margin-bottom:4px;font-size:13px}
-.zip-file .zf-icon{font-size:18px}
-.zip-file .zf-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.zip-file .zf-size{color:var(--text2);font-size:11px}
-.modal-actions{display:flex;gap:8px;margin-top:12px}
-.modal-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;text-align:center}
-.modal-btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.zip-file{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;margin-bottom:4px;font-size:12px}
+.zip-file .zf-icon{font-size:16px}
+.zip-file .zf-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:monospace}
+.zip-file .zf-size{color:var(--text2);font-size:10px}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.modal-btn{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;text-align:center;font-weight:600}
+.modal-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
 
-/* Pulse animation for live indicator */
-.live-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;backdrop-filter:blur(10px)}
+.toast.show{opacity:1}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty .ei{font-size:48px;margin-bottom:10px}
+
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.repo-header{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;cursor:pointer}
+.repo-header:active{border-color:var(--accent)}
+.repo-header .rh-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.repo-header .rh-name{font-size:14px;font-weight:700;flex:1}
+.repo-header .rh-lang{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:10px}
+.repo-header .rh-desc{font-size:11px;color:var(--text2);line-height:1.3}
+.repo-header .rh-meta{font-size:10px;color:var(--text2);margin-top:6px;display:flex;gap:12px}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>⚡ <span>Pipeline</span></h1>
-  <div class="header-actions">
-    <button class="header-btn" onclick="refreshAll()">🔄</button>
+  <h1>⚡ <span class="logo">Pipeline</span></h1>
+  <div class="header-right">
+    <span class="offline-badge" id="offline-badge">OFFLINE</span>
+    <button class="hdr-btn" onclick="syncGitHub()" title="Sync GitHub">🔄</button>
   </div>
 </div>
 
-<!-- FILES PAGE -->
 <div class="page active" id="page-files">
-  <div class="search-box">
-    <input type="text" id="file-search" placeholder="Search files..." oninput="filterFiles(this.value)">
-  </div>
-  <div class="stats-bar" id="stats-bar"></div>
+  <div class="search-box"><span class="si">🔍</span><input type="text" id="file-search" placeholder="Search files..." oninput="filterFiles(this.value)"></div>
+  <div class="stats" id="stats-bar"></div>
   <div id="breadcrumb" class="breadcrumb"></div>
   <div id="file-list"></div>
 </div>
 
-<!-- LINKS PAGE -->
+<div class="page" id="page-repos">
+  <div class="search-box"><span class="si">🔍</span><input type="text" id="repo-search" placeholder="Search repos..." oninput="filterRepos(this.value)"></div>
+  <div id="repo-list"></div>
+</div>
+
 <div class="page" id="page-links">
-  <div class="search-box">
-    <input type="text" id="link-search" placeholder="Search links..." oninput="filterLinks(this.value)">
-  </div>
+  <div class="search-box"><span class="si">🔍</span><input type="text" id="link-search" placeholder="Search links..." oninput="filterLinks(this.value)"></div>
   <div id="link-list"></div>
 </div>
 
-<!-- UPLOAD PAGE -->
 <div class="page" id="page-upload">
-  <div class="section-title">📤 Upload to Pipeline</div>
+  <div class="section-title">📤 Upload Files</div>
   <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-    <div class="upload-icon">📁</div>
-    <p><strong>Tap to upload</strong> or drag & drop</p>
-    <p style="font-size:11px;margin-top:8px;color:var(--text2)">ZIP, DOCX, PDF, images, audio, code, any file</p>
-    <input type="file" id="file-input" multiple accept="*/*" onchange="handleUpload(this.files)">
+    <div class="uz-icon">📁</div>
+    <p><strong>Tap to upload</strong> or drag files here</p>
+    <p style="font-size:10px;margin-top:4px;color:var(--text2)">Any file type • Stored locally for offline access</p>
+    <input type="file" id="file-input" multiple onchange="handleUpload(this.files)">
   </div>
-  <div class="section-title">📦 Extract ZIP</div>
+  <div class="section-title">📦 Extract ZIP Archive</div>
   <div class="upload-zone" onclick="document.getElementById('zip-input').click()" style="padding:20px">
-    <p><strong>Upload ZIP</strong> to extract files</p>
+    <p><strong>Upload ZIP</strong> to extract & browse contents</p>
     <input type="file" id="zip-input" accept=".zip" onchange="handleZipUpload(this.files)">
   </div>
-  <div class="section-title">📋 Uploaded Files</div>
+  <div class="section-title">💾 Stored Files</div>
   <div id="uploaded-list"></div>
 </div>
 
-<!-- VIEWER PAGE (shows last viewed file) -->
 <div class="page" id="page-viewer">
-  <div class="empty">
-    <div class="empty-icon">📖</div>
-    <p>Tap a file to view it here</p>
-  </div>
+  <div class="empty"><div class="ei">📖</div><p>Tap any file to view it here</p></div>
 </div>
 
-<!-- SEARCH PAGE -->
-<div class="page" id="page-search">
-  <div class="search-box">
-    <input type="text" id="global-search" placeholder="Search everything..." oninput="globalSearch(this.value)">
-  </div>
-  <div id="search-results"></div>
-</div>
-
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="switchPage('files')">
-    <span class="nav-icon">📁</span>
-    <span>Files</span>
-  </div>
-  <div class="nav-item" onclick="switchPage('links')">
-    <span class="nav-icon">🔗</span>
-    <span>Links</span>
-  </div>
-  <div class="nav-item" onclick="switchPage('upload')">
-    <span class="nav-icon">📤</span>
-    <span>Upload</span>
-  </div>
-  <div class="nav-item" onclick="switchPage('viewer')">
-    <span class="nav-icon">📖</span>
-    <span>Viewer</span>
-  </div>
-  <div class="nav-item" onclick="switchPage('search')">
-    <span class="nav-icon">🔍</span>
-    <span>Search</span>
-  </div>
+  <div class="nav-item active" onclick="switchPage('files')"><span class="ni">📁</span>Files</div>
+  <div class="nav-item" onclick="switchPage('repos')"><span class="ni">🐙</span>Repos</div>
+  <div class="nav-item" onclick="switchPage('links')"><span class="ni">🔗</span>Links</div>
+  <div class="nav-item" onclick="switchPage('upload')"><span class="ni">📤</span>Upload</div>
+  <div class="nav-item" onclick="switchPage('viewer')"><span class="ni">📖</span>Viewer</div>
 </div>
 
-<!-- VIEWER OVERLAY -->
 <div class="viewer-overlay" id="viewer-overlay">
-  <div class="viewer-header">
-    <button class="viewer-close" onclick="closeViewer()">✕</button>
-    <h3 id="viewer-title">File</h3>
-    <div class="viewer-actions">
-      <button class="viewer-btn" onclick="downloadCurrent()">⬇️</button>
+  <div class="v-header">
+    <button class="v-close" onclick="closeViewer()">✕</button>
+    <div class="v-title" id="v-title">File</div>
+    <div class="v-actions">
+      <button class="v-btn" onclick="shareCurrent()">↗</button>
+      <button class="v-btn" onclick="downloadCurrent()">⬇️</button>
     </div>
   </div>
-  <div class="viewer-content" id="viewer-content"></div>
+  <div class="v-content" id="v-content"></div>
 </div>
 
-<!-- ZIP MODAL -->
 <div class="modal-overlay" id="zip-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeZipModal()">✕</button>
     <h2>📦 ZIP Contents</h2>
-    <div id="zip-info" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
-    <div class="zip-files" id="zip-files"></div>
+    <div id="zip-info" style="font-size:11px;color:var(--text2);margin-bottom:8px"></div>
+    <div id="zip-files"></div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeZipModal()">Cancel</button>
       <button class="modal-btn primary" onclick="extractAllZip()">Extract All</button>
@@ -269,862 +233,437 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
 <script>
-// ==========================================
-// PIPELINE - Mobile File Hub
-// ==========================================
+// ============================================================
+// PIPELINE v2.0 — Mobile File Hub with GitHub Integration
+// ============================================================
 
-const DB_NAME = 'pipeline-db';
-const DB_VERSION = 1;
-const STORE_FILES = 'files';
-let db = null;
-let currentPath = [];
-let currentViewerFile = null;
-let currentZipFiles = [];
+const DB='pipeline-v2', DBV=1, STORE='files';
+let db=null, curPath=[], curViewer=null, curZip=[];
 
-// ==========================================
-// WORKSPACE FILE MANIFEST
-// ==========================================
-const WORKSPACE = {
-  'Projects': {
-    'AI Music Studio': {
-      type: 'folder',
-      files: [
-        { name: 'ai-music-studio.html', path: 'ai-music-studio.html', type: 'html', size: '45KB', desc: 'AI Music Studio v9.0 — beat sequencer, chord player, lyrics, effects' },
-        { name: 'songwriting-composer/', path: 'songwriting-composer/', type: 'folder', size: '-', desc: 'Songwriting composer project directory' },
-      ]
-    },
-    'Developer Products': {
-      type: 'folder',
-      files: [
-        { name: 'developer-products/', path: 'developer-products/', type: 'folder', size: '-', desc: 'Smart contracts, AI kit, SaaS boilerplate, landing page' },
-      ]
-    },
-    'Paxeer 402 Service': {
-      type: 'folder',
-      files: [
-        { name: 'paxeer-402-service/', path: 'paxeer-402-service/', type: 'folder', size: '-', desc: 'HTTP 402 payment middleware for Paxeer Network' },
-      ]
-    },
-    'Paxeer Agent Wallet': {
-      type: 'folder',
-      files: [
-        { name: 'paxeer-agent-wallet/', path: 'paxeer-agent-wallet/', type: 'folder', size: '-', desc: 'AI agent wallet with DID identity, spending policies, AgentKit' },
-      ]
-    },
-    'War Room': {
-      type: 'folder',
-      files: [
-        { name: 'war-room/', path: 'war-room/', type: 'folder', size: '-', desc: 'Marketing & sales command center dashboard' },
-      ]
-    },
-    'FieldFlow': {
-      type: 'folder',
-      files: [
-        { name: 'fieldflow/', path: 'fieldflow/', type: 'folder', size: '-', desc: 'Field service management platform' },
-      ]
-    },
-    'LootAgent': {
-      type: 'folder',
-      files: [
-        { name: 'lootagent/', path: 'lootagent/', type: 'folder', size: '-', desc: 'AI money agent for crypto users' },
-      ]
-    },
-    'REST API': {
-      type: 'folder',
-      files: [
-        { name: 'rest-api/', path: 'rest-api/', type: 'folder', size: '-', desc: 'Express.js REST API with SQLite & JWT auth' },
-      ]
-    },
-    'Voice Commander': {
-      type: 'folder',
-      files: [
-        { name: 'voice-commander/', path: 'voice-commander/', type: 'folder', size: '-', desc: 'Voice-controlled interactions with Neo' },
-      ]
-    },
-    'Halluc Plumbing': {
-      type: 'folder',
-      files: [
-        { name: 'halluc-deploy/', path: 'halluc-deploy/', type: 'folder', size: '-', desc: 'Halluc Plumbing app deployment files' },
-      ]
-    },
-  },
-  'Research': {
-    files: [
-      { name: 'paxeer-research.md', path: 'paxeer-research.md', type: 'md', size: '15KB', desc: 'Paxeer ecosystem research — LayerX, 402LXP, Deus, MCP bridges' },
-    ]
-  },
-  'Knowledge Base': {
-    files: [
-      { name: 'knowledge/', path: 'knowledge/', type: 'folder', size: '-', desc: 'Structured knowledge base — sources, analysis, concepts, entities' },
-    ]
-  },
-  'Skills': {
-    files: [
-      { name: 'skills/', path: 'skills/', type: 'folder', size: '-', desc: '128+ reusable skills across 16+ domains' },
-    ]
-  },
-  'Memory': {
-    files: [
-      { name: 'MEMORY.md', path: 'MEMORY.md', type: 'md', size: '8KB', desc: 'Long-term memory index — preferences, decisions, key info' },
-      { name: 'memory/', path: 'memory/', type: 'folder', size: '-', desc: 'Daily memory files' },
-    ]
-  },
-  'Config': {
-    files: [
-      { name: 'AGENT.md', path: 'AGENT.md', type: 'md', size: '2KB', desc: 'Neo identity and personality config' },
-      { name: 'USER.md', path: 'USER.md', type: 'md', size: '1KB', desc: 'User identity info' },
-      { name: 'RULE.md', path: 'RULE.md', type: 'md', size: '3KB', desc: 'Workspace rules and conventions' },
-      { name: 'package.json', path: 'package.json', type: 'json', size: '1KB', desc: 'Node.js package config' },
-      { name: 'manifest.json', path: 'manifest.json', type: 'json', size: '1KB', desc: 'PWA manifest' },
-    ]
-  },
-  'Audio': {
-    files: [
-      { name: 'luca-theme.wav', path: 'luca-theme.wav', type: 'wav', size: '1.2MB', desc: "Luca's Theme — anime-style instrumental" },
-      { name: 'luca-full-song.wav', path: 'luca-full-song.wav', type: 'wav', size: '8MB', desc: "Luca's Theme — full song with vocals" },
-      { name: 'tone.wav', path: 'tone.wav', type: 'wav', size: '50KB', desc: 'Test tone audio file' },
-    ]
-  },
-  'Docs': {
-    files: [
-      { name: 'README.md', path: 'README.md', type: 'md', size: '2KB', desc: 'Project README' },
-      { name: 'CHANGELOG.md', path: 'CHANGELOG.md', type: 'md', size: '3KB', desc: 'Change log' },
-    ]
-  },
+// ============================================================
+// FULL WORKSPACE MANIFEST
+// ============================================================
+const WS={
+'Projects':{
+  'AI Music Studio':{files:[
+    {n:'ai-music-studio.html',p:'ai-music-studio.html',t:'html',s:'45KB',d:'v9.0 Masterpiece Studio — beat sequencer, chords, lyrics, effects, Replicate AI'},
+    {n:'songwriting-composer/',p:'songwriting-composer/',t:'folder',d:'Full project directory with drums, integration scripts'},
+    {n:'suno-integration.js',p:'suno-integration.js',t:'js',s:'4KB',d:'Suno AI integration for vocal generation'},
+    {n:'generate-full-song.js',p:'generate-full-song.js',t:'js',s:'3KB',d:'Full song generation script'},
+    {n:'generate-luca-theme.js',p:'generate-luca-theme.js',t:'js',s:'2KB',d:"Luca's Theme generator"},
+  ]},
+  'Developer Products':{files:[
+    {n:'developer-products/',p:'developer-products/',t:'folder',d:'Smart contracts, AI kits, SaaS boilerplate, landing pages, Gumroad materials'},
+    {n:'EVERYTHING-BUILT.md',p:'developer-products/EVERYTHING-BUILT.md',t:'md',d:'Complete inventory of all built products'},
+    {n:'launch-checklist.md',p:'developer-products/launch-checklist.md',t:'md',d:'Product launch checklist'},
+  ]},
+  'War Room':{files:[
+    {n:'war-room/',p:'war-room/',t:'folder',d:'Marketing command center — dashboard, social content, launch materials'},
+    {n:'index.html',p:'war-room/index.html',t:'html',s:'25KB',d:'Interactive marketing dashboard with KPIs, pipeline, revenue tracker'},
+    {n:'social-media-content.md',p:'war-room/social-media-content.md',t:'md',d:'15 ready-to-post social media posts'},
+    {n:'launch-materials.md',p:'war-room/launch-materials.md',t:'md',d:'Platform-specific launch copy'},
+  ]},
+  'Paxeer 402 Service':{files:[
+    {n:'paxeer-402-service/',p:'paxeer-402-service/',t:'folder',d:'HTTP 402 payment middleware for Paxeer Network'},
+    {n:'server.js',p:'paxeer-402-service/server.js',t:'js',d:'Express server with payment verification'},
+    {n:'middleware.js',p:'paxeer-402-service/middleware.js',t:'js',d:'HTTP 402 middleware'},
+    {n:'wallet.js',p:'paxeer-402-service/wallet.js',t:'js',d:'Wallet interaction module'},
+    {n:'README.md',p:'paxeer-402-service/README.md',t:'md',d:'Service documentation'},
+  ]},
+  'Paxeer Agent Wallet':{files:[
+    {n:'paxeer-agent-wallet/',p:'paxeer-agent-wallet/',t:'folder',d:'AI agent wallet with DID identity, spending policies, AgentKit'},
+    {n:'agent-wallet.js',p:'paxeer-agent-wallet/agent-wallet.js',t:'js',d:'Core wallet logic'},
+    {n:'identity.js',p:'paxeer-agent-wallet/identity.js',t:'js',d:'DID identity management'},
+    {n:'policy-engine.js',p:'paxeer-agent-wallet/policy-engine.js',t:'js',d:'Spending policy engine'},
+    {n:'treasury.js',p:'paxeer-agent-wallet/treasury.js',t:'js',d:'Multi-asset treasury'},
+    {n:'commerce.js',p:'paxeer-agent-wallet/commerce.js',t:'js',d:'Commerce engine'},
+    {n:'api.js',p:'paxeer-agent-wallet/api.js',t:'js',d:'REST API endpoints'},
+    {n:'agentkit-integration/',p:'paxeer-agent-wallet/agentkit-integration/',t:'folder',d:'Coinbase AgentKit v0.11.0 integration'},
+  ]},
+  'Halluc Plumbing':{files:[
+    {n:'halluc-deploy/',p:'halluc-deploy/',t:'folder',d:'Business management PWA — 19 pages, invoices, quotes, scheduling'},
+    {n:'index.html',p:'halluc-deploy/index.html',t:'html',d:'Main app entry'},
+    {n:'app.js',p:'halluc-deploy/app.js',t:'js',d:'Core app logic'},
+    {n:'style.css',p:'halluc-deploy/style.css',t:'css',d:'Styles'},
+  ]},
+  'FieldFlow':{files:[
+    {n:'fieldflow/',p:'fieldflow/',t:'folder',d:'FieldFlow CRM v3.0 — React/Vite/Tailwind field service management'},
+    {n:'COMPETITIVE-ANALYSIS.md',p:'fieldflow/COMPETITIVE-ANALYSIS.md',t:'md',d:'Competitive landscape analysis'},
+  ]},
+  'FieldBase':{files:[
+    {n:'fieldbase/',p:'fieldbase/',t:'folder',d:'Generic field service platform — 181 templates, 23 pages, 20 languages'},
+  ]},
+  'LootAgent':{files:[
+    {n:'lootagent/',p:'lootagent/',t:'folder',d:'AI money agent — React 19 + Vite + Tailwind + ethers.js v6'},
+    {n:'HANDOFF.md',p:'lootagent/HANDOFF.md',t:'md',d:'Project handoff document'},
+  ]},
+  'Money Machine':{files:[
+    {n:'money-machine/',p:'money-machine/',t:'folder',d:'Neo AI Business Platform — landing pages, intake, proposals, revenue tracking'},
+    {n:'BUSINESS-PLAN.md',p:'money-machine/BUSINESS-PLAN.md',t:'md',d:'Business plan'},
+    {n:'ROADMAP.md',p:'money-machine/ROADMAP.md',t:'md',d:'Product roadmap'},
+  ]},
+  'Voice Commander':{files:[
+    {n:'voice-commander/',p:'voice-commander/',t:'folder',d:'Voice-controlled interactions — wake word, continuous listening, TTS'},
+  ]},
+  'REST API':{files:[
+    {n:'rest-api/',p:'rest-api/',t:'folder',d:'Express.js + SQLite + JWT auth API'},
+  ]},
+  'Machine Genome':{files:[
+    {n:'machine-genome/',p:'machine-genome/',t:'folder',d:'Open identity & provenance protocol for AI models and agents (Go)'},
+  ]},
+  'BrightPath':{files:[
+    {n:'brightpath/',p:'brightpath/',t:'folder',d:'Accessibility platform for families with children with disabilities'},
+  ]},
+  'Neo Audio Player':{files:[
+    {n:'websites/neo-audio-player/',p:'websites/neo-audio-player/',t:'folder',d:'Personal music player for Neo'},
+  ]},
+},
+'Audio':{files:[
+  {n:'luca-theme.wav',p:'luca-theme.wav',t:'wav',s:'1.2MB',d:"Luca's Theme — anime-style instrumental"},
+  {n:'luca-full-song.wav',p:'luca-full-song.wav',t:'wav',s:'8MB',d:"Luca's Theme — full song with vocals"},
+  {n:'tone.wav',p:'tone.wav',t:'wav',s:'50KB',d:'Test tone audio'},
+  {n:'drums/',p:'drums/',t:'folder',d:'Drum samples — kick, snare, hihat, clap, openhat, tom'},
+]},
+'Research & Knowledge':{files:[
+  {n:'paxeer-research.md',p:'paxeer-research.md',t:'md',s:'15KB',d:'Paxeer ecosystem — LayerX, 402LXP, Deus, MCP bridges, DID auth'},
+  {n:'knowledge/',p:'knowledge/',t:'folder',d:'Structured knowledge base — sources, analysis, concepts, entities'},
+  {n:'skills/',p:'skills/',t:'folder',d:'128+ reusable skills across 16+ domains'},
+]},
+'Memory & Config':{files:[
+  {n:'MEMORY.md',p:'MEMORY.md',t:'md',s:'8KB',d:'Long-term memory index — preferences, decisions, key info'},
+  {n:'memory/',p:'memory/',t:'folder',d:'Daily memory files + dreams + evolution logs'},
+  {n:'AGENT.md',p:'AGENT.md',t:'md',s:'2KB',d:'Neo identity and personality config'},
+  {n:'USER.md',p:'USER.md',t:'md',s:'1KB',d:'User identity info'},
+  {n:'RULE.md',p:'RULE.md',t:'md',s:'3KB',d:'Workspace rules and conventions'},
+  {n:'CHANGELOG.md',p:'CHANGELOG.md',t:'md',d:'Change log'},
+  {n:'README.md',p:'README.md',t:'md',d:'Project README'},
+  {n:'package.json',p:'package.json',t:'json',d:'Node.js package config'},
+  {n:'manifest.json',p:'manifest.json',t:'json',d:'PWA manifest'},
+]},
+'Deploy & Tools':{files:[
+  {n:'vercel-deploy/',p:'vercel-deploy/',t:'folder',d:'Vercel deployment configs and scripts'},
+  {n:'halluc_audit_files/',p:'halluc_audit_files/',t:'folder',d:'Halluc Plumbing audit files'},
+  {n:'download_files.sh',p:'download_files.sh',t:'sh',d:'File download script'},
+  {n:'list_repos.sh',p:'list_repos.sh',t:'sh',d:'List GitHub repos script'},
+  {n:'get_tree.sh',p:'get_tree.sh',t:'sh',d:'Directory tree script'},
+  {n:'start.sh',p:'start.sh',t:'sh',d:'Workspace startup script'},
+]},
 };
 
-// ==========================================
-// LINKS HUB
-// ==========================================
-const LINKS = {
-  'GitHub Repos': [
-    { name: 'Matrix Workspace', url: 'https://github.com/jtjustinktaylor-lgtm/matrix-workspace', icon: '📦', desc: 'Halluc Plumbing app + site' },
-    { name: 'FieldBase', url: 'https://github.com/jtjustinktaylor-lgtm/fieldbase', icon: '🏗️', desc: 'Field service management platform' },
-    { name: 'LootAgent', url: 'https://github.com/jtjustinktaylor-lgtm/lootagent', icon: '🤖', desc: 'AI money agent' },
-    { name: 'Songwriting Composer', url: 'https://github.com/jtjustinktaylor-lgtm/songwriting-composer', icon: '🎵', desc: 'AI Music Studio' },
-    { name: 'Paxeer 402 Service', url: 'https://github.com/jtjustinktaylor-lgtm/paxeer-402-service', icon: '💳', desc: 'HTTP 402 payment middleware' },
-    { name: 'Paxeer Agent Wallet', url: 'https://github.com/jtjustinktaylor-lgtm/paxeer-agent-wallet', icon: '👛', desc: 'AI agent wallet + AgentKit' },
+// ============================================================
+// GITHUB REPOS (18 total)
+// ============================================================
+const REPOS=[
+  {name:'pipeline',desc:'Pipeline - Mobile File Hub PWA',lang:'HTML',url:'https://github.com/jtjustinktaylor-lgtm/pipeline',live:'https://jtjustinktaylor-lgtm.github.io/pipeline/'},
+  {name:'matrix-workspace',desc:'Matrix agent workspace — DeFi dashboards, plumbing sites, chain tools',lang:'HTML',url:'https://github.com/jtjustinktaylor-lgtm/matrix-workspace'},
+  {name:'tradestack-products',desc:'TradeStack digital products for Payhip',lang:null,url:'https://github.com/jtjustinktaylor-lgtm/tradestack-products'},
+  {name:'paxeer-402-service',desc:'HTTP 402 microservice for Paxeer Network',lang:'JavaScript',url:'https://github.com/jtjustinktaylor-lgtm/paxeer-402-service'},
+  {name:'paxeer-agent-wallet',desc:'Autonomous AI agent wallet for Paxeer Network',lang:'JavaScript',url:'https://github.com/jtjustinktaylor-lgtm/paxeer-agent-wallet'},
+  {name:'songwriting-composer',desc:'AI Music Studio — beat sequencer, chords, lyrics, Suno AI',lang:'HTML',url:'https://github.com/jtjustinktaylor-lgtm/songwriting-composer',live:'https://jtjustinktaylor-lgtm.github.io/songwriting-composer/ai-music-studio.html'},
+  {name:'money-machine',desc:'Neo AI Business Platform — landing pages, intake, proposals',lang:'HTML',url:'https://github.com/jtjustinktaylor-lgtm/money-machine'},
+  {name:'neo-audio-player',desc:'Personal music player for Neo',lang:'HTML',url:'https://github.com/jtjustinktaylor-lgtm/neo-audio-player'},
+  {name:'halluc-plumbing-app',desc:'Halluc Plumbing — Business management PWA',lang:'JavaScript',url:'https://github.com/jtjustinktaylor-lgtm/halluc-plumbing-app'},
+  {name:'lootagent',desc:'AI That Earns Money — mobile-first PWA on Paxeer',lang:'TypeScript',url:'https://github.com/jtjustinktaylor-lgtm/lootagent'},
+  {name:'fieldbase',desc:'Business management for trades — quotes, jobs, invoices, Stripe',lang:'TypeScript',url:'https://github.com/jtjustinktaylor-lgtm/fieldbase'},
+  {name:'fieldflow',desc:'FieldFlow CRM v3.0 — field service management',lang:'TypeScript',url:'https://github.com/jtjustinktaylor-lgtm/fieldflow'},
+  {name:'scripts',desc:'Workspace tooling and health check scripts',lang:'Shell',url:'https://github.com/jtjustinktaylor-lgtm/scripts'},
+  {name:'machine-genome',desc:'Open identity & provenance protocol for AI models and agents',lang:'Go',url:'https://github.com/jtjustinktaylor-lgtm/machine-genome'},
+  {name:'brightpath',desc:'Community platform for families with children with disabilities',lang:'TypeScript',url:'https://github.com/jtjustinktaylor-lgtm/brightpath'},
+  {name:'my-saas-business',desc:'SaaS Starter Kit + marketing + landing pages',lang:'TypeScript',url:'https://github.com/jtjustinktaylor-lgtm/my-saas-business'},
+  {name:'jtjustinktaylor-lgtm',desc:'Developer profile',lang:null,url:'https://github.com/jtjustinktaylor-lgtm/jtjustinktaylor-lgtm'},
+  {name:'entrepreneurial-business',desc:'Entrepreneurial business — work in progress',lang:null,url:'https://github.com/jtjustinktaylor-lgtm/entrepreneurial-business'},
+];
+
+// ============================================================
+// LINKS
+// ============================================================
+const LINKS={
+  'Blockchain':[
+    {n:'Paxeer Explorer',u:'https://paxscan.io',i:'🔍',d:'Block explorer'},
+    {n:'Paxeer RPC',u:'https://public-rpc.paxeer.app/evm/reference',i:'⚡',d:'Public RPC endpoint'},
+    {n:'Main Wallet',u:'https://paxscan.io/address/0x2Baeb821b0F2b47be442f3c68074b8B87B3f8744',i:'🦊',d:'0x2Baeb...8744'},
+    {n:'Agentic Wallet',u:'https://paxscan.io/address/0xC375f6f69f55DAD35484613db63Bb2585f878777',i:'🤖',d:'0xC375f...8777'},
   ],
-  'Live Apps': [
-    { name: 'AI Music Studio', url: 'https://jtjustinktaylor-lgtm.github.io/songwriting-composer/ai-music-studio.html', icon: '🎵', desc: 'Beat sequencer, chord player, AI generation' },
+  'Matrix / Neo':[
+    {n:'Matrix Neo Repo',u:'https://github.com/paxlabs-inc/matrix-core/tree/main/neo',i:'💊',d:'Neo agent core'},
+    {n:'Matrix Neocortex',u:'https://github.com/paxlabs-inc/matrix-core/tree/main/neocortex',i:'🧠',d:'Neocortex architecture'},
   ],
-  'Blockchain': [
-    { name: 'Paxeer Explorer', url: 'https://paxscan.io', icon: '🔍', desc: 'Block explorer for Paxeer Network' },
-    { name: 'Paxeer RPC', url: 'https://public-rpc.paxeer.app/evm/reference', icon: '⚡', desc: 'Public RPC endpoint' },
-    { name: 'Main Wallet', url: 'https://paxscan.io/address/0x2Baeb821b0F2b47be442f3c68074b8B87B3f8744', icon: '🦊', desc: '0x2Baeb...8744' },
-    { name: 'Agentic Wallet', url: 'https://paxscan.io/address/0xC375f6f69f55DAD35484613db63Bb2585f878777', icon: '🤖', desc: '0xC375f...8777' },
-  ],
-  'Matrix / Neo': [
-    { name: 'Matrix Neo Repo', url: 'https://github.com/paxlabs-inc/matrix-core/tree/main/neo', icon: '💊', desc: 'Neo agent core' },
-    { name: 'Matrix Neocortex', url: 'https://github.com/paxlabs-inc/matrix-core/tree/main/neocortex', icon: '🧠', desc: 'Neocortex architecture' },
+  'Live Apps':[
+    {n:'AI Music Studio',u:'https://jtjustinktaylor-lgtm.github.io/songwriting-composer/ai-music-studio.html',i:'🎵',d:'Beat sequencer, chords, AI generation'},
+    {n:'Pipeline',u:'https://jtjustinktaylor-lgtm.github.io/pipeline/',i:'⚡',d:'This app!'},
   ],
 };
 
-// ==========================================
-// FILE TYPE HELPERS
-// ==========================================
-const FILE_ICONS = {
-  md: '📝', txt: '📄', json: '📋', js: '⚡', ts: '💎', py: '🐍', html: '🌐', css: '🎨',
-  svg: '🖼️', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', webp: '🖼️',
-  mp3: '🎵', wav: '🎵', ogg: '🎵', m4a: '🎵',
-  mp4: '🎬', webm: '🎬', mov: '🎬',
-  pdf: '📕', docx: '📘', doc: '📘', xlsx: '📊', csv: '📊',
-  zip: '📦', tar: '📦', gz: '📦',
-  sol: '📜', yaml: '📋', yml: '📋', xml: '📋', sh: '⚙️',
-  folder: '📁', link: '🔗',
-};
+// ============================================================
+// HELPERS
+// ============================================================
+const ICONS={md:'📝',txt:'📄',json:'📋',js:'⚡',ts:'💎',py:'🐍',html:'🌐',css:'🎨',svg:'🖼️',png:'🖼️',jpg:'🖼️',jpeg:'🖼️',gif:'🖼️',webp:'🖼️',mp3:'🎵',wav:'🎵',ogg:'🎵',m4a:'🎵',mp4:'🎬',webm:'🎬',pdf:'📕',docx:'📘',doc:'📘',xlsx:'📊',csv:'📊',zip:'📦',tar:'📦',gz:'📦',sol:'📜',yaml:'📋',yml:'📋',xml:'📋',sh:'⚙️',go:'🔷',rs:'🦀',folder:'📁',tsx:'💎',jsx:'⚡'};
+const gi=(t)=>ICONS[t]||'📄';
+const ext=(n)=>{const p=n.split('.');return p.length>1?p.pop().toLowerCase():''};
+const esc=(t)=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
+const fs=(b)=>{if(!b)return'';if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB'};
 
-function getFileIcon(type) {
-  return FILE_ICONS[type] || '📄';
-}
-
-function getExt(name) {
-  const parts = name.split('.');
-  return parts.length > 1 ? parts.pop().toLowerCase() : '';
-}
-
-function isViewable(ext) {
-  return ['md','txt','json','js','ts','py','html','css','svg','yaml','yml','xml','sh','sol','csv','rtf','log','cfg','ini','env','gitignore','markdown'].includes(ext) ||
-    ['png','jpg','jpeg','gif','webp','svg','bmp'].includes(ext) ||
-    ['mp3','wav','ogg','m4a','flac'].includes(ext) ||
-    ['mp4','webm','mov'].includes(ext) ||
-    ['pdf'].includes(ext);
-}
-
-// ==========================================
+// ============================================================
 // INDEXEDDB
-// ==========================================
-function initDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_FILES)) {
-        db.createObjectStore(STORE_FILES, { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
-    req.onerror = (e) => reject(e);
-  });
-}
+// ============================================================
+function initDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB,DBV);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=e=>{db=e.target.result;res(db)};r.onerror=e=>rej(e)})}
+function dbPut(f){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(f);tx.oncomplete=()=>res();tx.onerror=e=>rej(e)})}
+function dbAll(){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=e=>rej(e)})}
+function dbGet(id){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).get(id);r.onsuccess=()=>res(r.result);r.onerror=e=>rej(e)})}
+function dbDel(id){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>res();tx.onerror=e=>rej(e)})}
 
-function dbPut(file) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_FILES, 'readwrite');
-    tx.objectStore(STORE_FILES).put(file);
-    tx.oncomplete = () => resolve();
-    tx.onerror = (e) => reject(e);
-  });
+// ============================================================
+// NAV
+// ============================================================
+const PAGES=['files','repos','links','upload','viewer'];
+function switchPage(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  document.querySelectorAll('.nav-item')[PAGES.indexOf(n)].classList.add('active');
+  if(n==='upload')renderUploaded();
+  if(n==='repos')renderRepos();
 }
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500)}
 
-function dbGetAll() {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_FILES, 'readonly');
-    const req = tx.objectStore(STORE_FILES).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e);
-  });
-}
-
-function dbGet(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_FILES, 'readonly');
-    const req = tx.objectStore(STORE_FILES).get(id);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e);
-  });
-}
-
-function dbDelete(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_FILES, 'readwrite');
-    tx.objectStore(STORE_FILES).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = (e) => reject(e);
-  });
-}
-
-// ==========================================
-// NAVIGATION
-// ==========================================
-function switchPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.nav-item')[['files','links','upload','viewer','search'].indexOf(name)].classList.add('active');
-  if (name === 'upload') renderUploadedFiles();
-}
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ==========================================
+// ============================================================
 // FILE BROWSER
-// ==========================================
-function renderFileBrowser() {
-  const container = document.getElementById('file-list');
-  const breadcrumb = document.getElementById('breadcrumb');
-  const statsBar = document.getElementById('stats-bar');
+// ============================================================
+function renderFiles(){
+  const c=document.getElementById('file-list'),bc=document.getElementById('breadcrumb'),sb=document.getElementById('stats-bar');
+  let tf=0;Object.values(WS).forEach(cat=>{if(cat.files)tf+=cat.files.length;else Object.values(cat).forEach(s=>{if(s&&s.files)tf+=s.files.length})});
+  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> files</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><div class="chip">🔗 <b>${Object.values(LINKS).reduce((a,l)=>a+l.length,0)}</b> links</div><div class="chip">💾 <b id="uc">0</b> stored</div>`;
 
-  // Stats
-  let totalFiles = 0;
-  let totalLinks = 0;
-  Object.values(WORKSPACE).forEach(cat => {
-    if (cat.files) totalFiles += cat.files.length;
-    else Object.values(cat).forEach(sub => { if (sub.files) totalFiles += sub.files.length; });
-  });
-  Object.values(LINKS).forEach(arr => totalLinks += arr.length);
+  if(curPath.length===0){bc.innerHTML='<span class="cur">🏠 Home</span>'}
+  else{let h='<span onclick="navTo([])">🏠</span>';curPath.forEach((p,i)=>{h+='<span class="sep">›</span>';h+=i===curPath.length-1?`<span class="cur">${p}</span>`:`<span onclick="navTo(${JSON.stringify(curPath.slice(0,i+1))})">${p}</span>`});bc.innerHTML=h}
 
-  statsBar.innerHTML = `
-    <div class="stat-chip">📁 <span class="num">${totalFiles}</span> files</div>
-    <div class="stat-chip">🔗 <span class="num">${totalLinks}</span> links</div>
-    <div class="stat-chip">💾 <span class="num" id="upload-count">0</span> uploaded</div>
-  `;
+  let items=[];
+  if(curPath.length===0){Object.entries(WS).forEach(([cn,cd])=>{const cnt=cd.files?cd.files.length:Object.keys(cd).length;items.push({n:cn,t:'cat',c:cnt})})}
+  else if(curPath.length===1){const cat=WS[curPath[0]];if(cat&&cat.files)cat.files.forEach(f=>items.push(f));else if(cat)Object.entries(cat).forEach(([sn,sd])=>{if(sd&&sd.files)items.push({n:sn,t:'sub',c:sd.files.length,files:sd.files})})}
+  else if(curPath.length===2){const cat=WS[curPath[0]];if(cat&&!cat.files){const sub=cat[curPath[1]];if(sub&&sub.files)sub.files.forEach(f=>items.push(f))}}
 
-  // Breadcrumb
-  if (currentPath.length === 0) {
-    breadcrumb.innerHTML = '<span class="current">🏠 Home</span>';
-  } else {
-    let html = '<span onclick="navigateTo([])">🏠</span>';
-    currentPath.forEach((p, i) => {
-      html += '<span class="sep">›</span>';
-      if (i === currentPath.length - 1) {
-        html += `<span class="current">${p}</span>`;
-      } else {
-        html += `<span onclick="navigateTo(${JSON.stringify(currentPath.slice(0, i + 1))})">${p}</span>`;
-      }
-    });
-    breadcrumb.innerHTML = html;
-  }
-
-  // Navigate to current path depth
-  let items = [];
-  if (currentPath.length === 0) {
-    // Top level categories
-    Object.entries(WORKSPACE).forEach(([catName, catData]) => {
-      if (catData.files) {
-        items.push({ name: catName, type: 'category', count: catData.files.length, icon: '📂' });
-      } else {
-        const subCount = Object.keys(catData).length;
-        items.push({ name: catName, type: 'category', count: subCount, icon: '📂' });
-      }
-    });
-  } else if (currentPath.length === 1) {
-    const cat = WORKSPACE[currentPath[0]];
-    if (cat && cat.files) {
-      cat.files.forEach(f => items.push(f));
-    } else if (cat) {
-      Object.entries(cat).forEach(([subName, subData]) => {
-        if (subData.files) {
-          items.push({ name: subName, type: 'subfolder', count: subData.files.length, icon: '📂', files: subData.files });
-        }
-      });
+  c.innerHTML=items.map(item=>{
+    if(item.t==='cat'||item.t==='sub'){
+      return`<div class="folder-item" onclick="navTo(${JSON.stringify([...curPath,item.n])})"><span class="fi">📂</span><div class="finfo"><div class="fn">${item.n}</div><div class="fc">${item.c} items</div></div><span class="arrow">›</span></div>`;
     }
-  } else if (currentPath.length === 2) {
-    const cat = WORKSPACE[currentPath[0]];
-    if (cat && !cat.files) {
-      const sub = cat[currentPath[1]];
-      if (sub && sub.files) {
-        sub.files.forEach(f => items.push(f));
-      }
-    }
-  }
-
-  container.innerHTML = items.map(item => {
-    if (item.type === 'category' || item.type === 'subfolder') {
-      return `<div class="folder-item" onclick="navigateTo(${JSON.stringify([...currentPath, item.name])})">
-        <span class="folder-icon">${item.icon || '📂'}</span>
-        <div class="folder-info">
-          <div class="folder-name">${item.name}</div>
-          <div class="folder-count">${item.count} items</div>
-        </div>
-        <span class="file-arrow">›</span>
-      </div>`;
-    }
-    const ext = getExt(item.name);
-    const icon = item.type === 'folder' ? '📁' : getFileIcon(ext);
-    const isFolder = item.type === 'folder';
-    const clickAction = isFolder
-      ? `navigateTo(${JSON.stringify([...currentPath, item.name.replace(/\/$/, '')])})`
-      : `viewWorkspaceFile('${item.path}', '${item.name}', '${item.type}')`;
-    return `<div class="file-item" onclick="${clickAction}">
-      <span class="file-icon">${icon}</span>
-      <div class="file-info">
-        <div class="file-name">${item.name}</div>
-        <div class="file-meta">${item.desc || item.size || ''}</div>
-      </div>
-      <span class="file-arrow">${isFolder ? '›' : '👁️'}</span>
-    </div>`;
+    const e=ext(item.n),isF=item.t==='folder';
+    const click=isF?`navTo(${JSON.stringify([...curPath,item.n.replace(/\/$/,'')])})`:`viewWSFile('${item.p||item.n}','${item.n}','${item.t||e}')`;
+    return`<div class="file-item" onclick="${click}"><span class="fi">${gi(isF?'folder':e)}</span><div class="finfo"><div class="fn">${item.n}</div><div class="fm">${item.d||item.s||''}</div></div><span class="arrow">${isF?'›':'👁️'}</span></div>`;
   }).join('');
 }
+function navTo(p){curPath=p;renderFiles()}
+function filterFiles(q){const items=document.querySelectorAll('#file-list .file-item,#file-list .folder-item');const lq=q.toLowerCase();items.forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(lq)?'':'none'})}
 
-function navigateTo(path) {
-  currentPath = path;
-  renderFileBrowser();
-}
-
-function filterFiles(query) {
-  const items = document.querySelectorAll('#file-list .file-item, #file-list .folder-item');
-  const q = query.toLowerCase();
-  items.forEach(el => {
-    const text = el.textContent.toLowerCase();
-    el.style.display = text.includes(q) ? '' : 'none';
-  });
-}
-
-// ==========================================
+// ============================================================
 // WORKSPACE FILE VIEWER
-// ==========================================
-async function viewWorkspaceFile(path, name, type) {
-  const ext = getExt(name);
+// ============================================================
+function findDesc(p,n){for(const[cat,cd]of Object.entries(WS)){if(cd.files){const f=cd.files.find(f=>f.n===n);if(f)return f.d}else{for(const[sub,sd]of Object.entries(cd)){if(sd&&sd.files){const f=sd.files.find(f=>f.n===n);if(f)return f.d}}}}return null}
 
-  // For workspace files, we'll show a preview with info and link to GitHub
-  const overlay = document.getElementById('viewer-overlay');
-  const content = document.getElementById('viewer-content');
-  const title = document.getElementById('viewer-title');
-
-  title.textContent = name;
-  currentViewerFile = { name, path, type, source: 'workspace' };
-
-  // Show file info card with description
-  const fileDesc = findFileDesc(path, name);
-
-  content.innerHTML = `
+function viewWSFile(path,name,type){
+  const o=document.getElementById('viewer-overlay'),c=document.getElementById('v-content'),t=document.getElementById('v-title');
+  t.textContent=name;curViewer={name,path,type,src:'ws'};
+  const desc=findDesc(path,name);
+  const e=ext(name);
+  c.innerHTML=`
     <div style="text-align:center;padding:20px">
-      <div style="font-size:64px;margin-bottom:16px">${getFileIcon(ext)}</div>
-      <h2 style="color:var(--accent);margin-bottom:8px">${name}</h2>
-      <p style="color:var(--text2);margin-bottom:16px">${fileDesc || 'Workspace file'}</p>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Path</div>
-        <div style="font-size:13px;font-family:monospace;color:var(--accent)">${path}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:12px;margin-bottom:4px">Type</div>
-        <div style="font-size:13px">${type.toUpperCase()}</div>
+      <div style="font-size:60px;margin-bottom:14px">${gi(e)}</div>
+      <h2 style="color:var(--accent);margin-bottom:6px;font-size:18px">${name}</h2>
+      <p style="color:var(--text2);margin-bottom:16px;font-size:13px">${desc||'Workspace file'}</p>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Path</div>
+        <div style="font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all">${path}</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:10px;margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Type</div>
+        <div style="font-size:12px">${(type||e).toUpperCase()}</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-        <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" style="display:inline-block;padding:10px 20px;background:var(--accent);color:#000;border-radius:10px;text-decoration:none;font-weight:600;font-size:13px">📂 View on GitHub</a>
-        <button onclick="copyPath('${path}')" style="padding:10px 20px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">📋 Copy Path</button>
+        <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">📂 View on GitHub</a>
+        <button onclick="navigator.clipboard.writeText('${path}').then(()=>toast('📋 Copied!'))" style="padding:10px 18px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">📋 Copy Path</button>
       </div>
-    </div>
-  `;
-
-  overlay.classList.add('open');
-}
-
-function findFileDesc(path, name) {
-  for (const [catName, catData] of Object.entries(WORKSPACE)) {
-    if (catData.files) {
-      const f = catData.files.find(f => f.name === name);
-      if (f) return f.desc;
-    } else {
-      for (const [subName, subData] of Object.entries(catData)) {
-        if (subData && subData.files) {
-          const f = subData.files.find(f => f.name === name);
-          if (f) return f.desc;
-        }
-      }
-    }
-  }
-  return null;
-}
-
-function copyPath(path) {
-  navigator.clipboard.writeText(path).then(() => toast('📋 Path copied!'));
-}
-
-// ==========================================
-// VIEWER
-// ==========================================
-async function viewFile(file) {
-  const overlay = document.getElementById('viewer-overlay');
-  const content = document.getElementById('viewer-content');
-  const title = document.getElementById('viewer-title');
-
-  title.textContent = file.name;
-  currentViewerFile = file;
-  content.innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:12px;color:var(--text2)">Loading...</p></div>';
-  overlay.classList.add('open');
-
-  const ext = getExt(file.name);
-
-  try {
-    if (['png','jpg','jpeg','gif','webp','bmp'].includes(ext)) {
-      const url = URL.createObjectURL(file.blob);
-      content.innerHTML = `<img src="${url}" alt="${file.name}" style="max-width:100%">`;
-    }
-    else if (['mp3','wav','ogg','m4a','flac'].includes(ext)) {
-      const url = URL.createObjectURL(file.blob);
-      content.innerHTML = `
-        <div style="text-align:center;padding:20px">
-          <div style="font-size:64px;margin-bottom:16px">🎵</div>
-          <h3 style="margin-bottom:16px">${file.name}</h3>
-          <audio controls src="${url}" style="width:100%;max-width:400px"></audio>
-        </div>`;
-    }
-    else if (['mp4','webm','mov'].includes(ext)) {
-      const url = URL.createObjectURL(file.blob);
-      content.innerHTML = `<video controls src="${url}" style="width:100%;border-radius:8px"></video>`;
-    }
-    else if (ext === 'pdf') {
-      const url = URL.createObjectURL(file.blob);
-      content.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:none;border-radius:8px"></iframe>`;
-    }
-    else if (ext === 'md') {
-      const text = await file.blob.text();
-      content.innerHTML = `<div class="markdown-body">${marked.parse(text)}</div>`;
-    }
-    else if (['txt','log','rtf','env','gitignore','cfg','ini','markdown'].includes(ext)) {
-      const text = await file.blob.text();
-      content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
-    }
-    else if (['json'].includes(ext)) {
-      const text = await file.blob.text();
-      try {
-        const pretty = JSON.stringify(JSON.parse(text), null, 2);
-        content.innerHTML = `<pre>${syntaxHighlight(pretty)}</pre>`;
-      } catch {
-        content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
-      }
-    }
-    else if (['js','ts','py','html','css','sh','sol','yaml','yml','xml','jsx','tsx','rb','go','rs','c','cpp','java'].includes(ext)) {
-      const text = await file.blob.text();
-      content.innerHTML = `<pre>${syntaxHighlight(escapeHtml(text))}</pre>`;
-    }
-    else if (ext === 'csv') {
-      const text = await file.blob.text();
-      content.innerHTML = csvToTable(text);
-    }
-    else if (ext === 'svg') {
-      const text = await file.blob.text();
-      content.innerHTML = text;
-    }
-    else {
-      // Try text fallback
-      try {
-        const text = await file.blob.text();
-        if (text.length < 500000 && /[\x20-\x7E\n\r\t]/.test(text.slice(0, 1000))) {
-          content.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
-        } else {
-          throw new Error('binary');
-        }
-      } catch {
-        const url = URL.createObjectURL(file.blob);
-        content.innerHTML = `
-          <div style="text-align:center;padding:40px">
-            <div style="font-size:64px;margin-bottom:16px">${getFileIcon(ext)}</div>
-            <h3>${file.name}</h3>
-            <p style="color:var(--text2);margin:8px 0">${file.blob.size ? formatSize(file.blob.size) : ''}</p>
-            <a href="${url}" download="${file.name}" style="display:inline-block;padding:12px 24px;background:var(--accent);color:#000;border-radius:10px;text-decoration:none;font-weight:600;margin-top:12px">⬇️ Download</a>
-          </div>`;
-      }
-    }
-  } catch (err) {
-    content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Error loading file: ${err.message}</p></div>`;
-  }
-}
-
-function closeViewer() {
-  document.getElementById('viewer-overlay').classList.remove('open');
-}
-
-function downloadCurrent() {
-  if (!currentViewerFile) return;
-  if (currentViewerFile.source === 'workspace') {
-    const githubUrl = `https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${currentViewerFile.path}`;
-    window.open(githubUrl, '_blank');
-    toast('Opening on GitHub...');
-    return;
-  }
-  if (currentViewerFile.blob) {
-    const url = URL.createObjectURL(currentViewerFile.blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = currentViewerFile.name;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('⬇️ Downloading...');
-  }
-}
-
-// ==========================================
-// UPLOAD
-// ==========================================
-async function handleUpload(files) {
-  for (const file of files) {
-    const data = {
-      id: 'upload-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      ext: getExt(file.name),
-      blob: file,
-      uploadedAt: Date.now(),
-    };
-    await dbPut(data);
-  }
-  toast(`📤 ${files.length} file(s) uploaded!`);
-  renderUploadedFiles();
-  updateUploadCount();
-}
-
-async function renderUploadedFiles() {
-  const container = document.getElementById('uploaded-list');
-  const files = await dbGetAll();
-
-  if (files.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No uploaded files yet</p></div>';
-    return;
-  }
-
-  files.sort((a, b) => b.uploadedAt - a.uploadedAt);
-  container.innerHTML = files.map(f => `
-    <div class="file-item">
-      <span class="file-icon">${getFileIcon(f.ext)}</span>
-      <div class="file-info" onclick="viewFile(${JSON.stringify({name:f.name,blob:f.blob})})">
-        <div class="file-name">${f.name}</div>
-        <div class="file-meta">${formatSize(f.size)} • ${new Date(f.uploadedAt).toLocaleDateString()}</div>
-      </div>
-      <button onclick="deleteUploaded('${f.id}')" style="background:none;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:4px 8px">🗑️</button>
-    </div>
-  `).join('');
-}
-
-async function deleteUploaded(id) {
-  await dbDelete(id);
-  renderUploadedFiles();
-  updateUploadCount();
-  toast('🗑️ File deleted');
-}
-
-async function updateUploadCount() {
-  const files = await dbGetAll();
-  const el = document.getElementById('upload-count');
-  if (el) el.textContent = files.length;
-}
-
-// ==========================================
-// ZIP EXTRACTION
-// ==========================================
-async function handleZipUpload(files) {
-  if (!files.length) return;
-  const file = files[0];
-
-  try {
-    const zip = await JSZip.loadAsync(file);
-    currentZipFiles = [];
-    zip.forEach((path, entry) => {
-      if (!entry.dir) {
-        currentZipFiles.push({ path, entry, name: path.split('/').pop() });
-      }
-    });
-
-    document.getElementById('zip-info').textContent = `${file.name} — ${currentZipFiles.length} files`;
-    document.getElementById('zip-files').innerHTML = currentZipFiles.map((f, i) => `
-      <div class="zip-file">
-        <span class="zf-icon">${getFileIcon(getExt(f.name))}</span>
-        <span class="zf-name">${f.path}</span>
-      </div>
-    `).join('');
-
-    document.getElementById('zip-modal').classList.add('open');
-  } catch (err) {
-    toast('❌ Not a valid ZIP file');
-  }
-}
-
-function closeZipModal() {
-  document.getElementById('zip-modal').classList.remove('open');
-}
-
-async function extractAllZip() {
-  closeZipModal();
-  toast('📦 Extracting...');
-
-  for (const f of currentZipFiles) {
-    const blob = await f.entry.async('blob');
-    const data = {
-      id: 'zip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      name: f.name,
-      size: blob.size,
-      type: blob.type,
-      ext: getExt(f.name),
-      blob: blob,
-      uploadedAt: Date.now(),
-      source: 'zip',
-    };
-    await dbPut(data);
-  }
-
-  toast(`✅ ${currentZipFiles.length} files extracted!`);
-  renderUploadedFiles();
-  updateUploadCount();
-  currentZipFiles = [];
-}
-
-// ==========================================
-// LINKS
-// ==========================================
-function renderLinks() {
-  const container = document.getElementById('link-list');
-  let html = '';
-
-  Object.entries(LINKS).forEach(([category, links]) => {
-    html += `<div class="section-title">${category}</div>`;
-    links.forEach(link => {
-      html += `<a class="link-item" href="${link.url}" target="_blank" rel="noopener">
-        <span class="link-icon">${link.icon}</span>
-        <div class="link-info">
-          <div class="link-name">${link.name}</div>
-          <div class="link-url">${link.desc || link.url}</div>
-        </div>
-        <span class="file-arrow">↗</span>
-      </a>`;
-    });
-  });
-
-  container.innerHTML = html;
-}
-
-function filterLinks(query) {
-  const items = document.querySelectorAll('#link-list .link-item, #link-list .section-title');
-  const q = query.toLowerCase();
-  let showSection = true;
-
-  items.forEach(el => {
-    if (el.classList.contains('section-title')) {
-      showSection = true;
-      let nextEl = el.nextElementSibling;
-      let hasVisible = false;
-      while (nextEl && !nextEl.classList.contains('section-title')) {
-        if (nextEl.textContent.toLowerCase().includes(q)) hasVisible = true;
-        nextEl = nextEl.nextElementSibling;
-      }
-      el.style.display = hasVisible || !query ? '' : 'none';
-    } else {
-      const text = el.textContent.toLowerCase();
-      el.style.display = text.includes(q) || !query ? '' : 'none';
-    }
-  });
-}
-
-// ==========================================
-// GLOBAL SEARCH
-// ==========================================
-function globalSearch(query) {
-  const container = document.getElementById('search-results');
-  if (!query || query.length < 2) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Search files, links, and uploaded content</p></div>';
-    return;
-  }
-
-  const q = query.toLowerCase();
-  const results = [];
-
-  // Search workspace
-  Object.entries(WORKSPACE).forEach(([catName, catData]) => {
-    if (catData.files) {
-      catData.files.forEach(f => {
-        if (f.name.toLowerCase().includes(q) || (f.desc && f.desc.toLowerCase().includes(q))) {
-          results.push({ ...f, category: catName, source: 'workspace' });
-        }
-      });
-    } else {
-      Object.entries(catData).forEach(([subName, subData]) => {
-        if (subData && subData.files) {
-          subData.files.forEach(f => {
-            if (f.name.toLowerCase().includes(q) || (f.desc && f.desc.toLowerCase().includes(q))) {
-              results.push({ ...f, category: `${catName} > ${subName}`, source: 'workspace' });
-            }
-          });
-        }
-      });
-    }
-  });
-
-  // Search links
-  Object.entries(LINKS).forEach(([catName, links]) => {
-    links.forEach(link => {
-      if (link.name.toLowerCase().includes(q) || link.desc.toLowerCase().includes(q) || link.url.toLowerCase().includes(q)) {
-        results.push({ name: link.name, desc: link.desc, url: link.url, icon: link.icon, category: catName, source: 'link' });
-      }
-    });
-  });
-
-  if (results.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">🤷</div><p>No results found</p></div>';
-    return;
-  }
-
-  container.innerHTML = results.map(r => {
-    if (r.source === 'link') {
-      return `<a class="link-item" href="${r.url}" target="_blank" rel="noopener">
-        <span class="link-icon">${r.icon}</span>
-        <div class="link-info">
-          <div class="link-name">${r.name}</div>
-          <div class="link-url">${r.category} • ${r.desc}</div>
-        </div>
-        <span class="file-arrow">↗</span>
-      </a>`;
-    }
-    const ext = getExt(r.name);
-    return `<div class="file-item" onclick="viewWorkspaceFile('${r.path}', '${r.name}', '${r.type}')">
-      <span class="file-icon">${getFileIcon(ext)}</span>
-      <div class="file-info">
-        <div class="file-name">${r.name}</div>
-        <div class="file-meta">${r.category} • ${r.desc || r.size || ''}</div>
-      </div>
-      <span class="file-arrow">👁️</span>
     </div>`;
-  }).join('');
+  o.classList.add('open');
 }
 
-// ==========================================
-// UTILS
-// ==========================================
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// ============================================================
+// STORED FILE VIEWER
+// ============================================================
+async function viewStored(file){
+  const o=document.getElementById('viewer-overlay'),c=document.getElementById('v-content'),t=document.getElementById('v-title');
+  t.textContent=file.name;curViewer={name:file.name,blob:file.blob,src:'stored'};
+  c.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner"></div></div>';
+  o.classList.add('open');
+  const e=ext(file.name);
+  try{
+    if(['png','jpg','jpeg','gif','webp','bmp'].includes(e)){const u=URL.createObjectURL(file.blob);c.innerHTML=`<img src="${u}" alt="${file.name}">`}
+    else if(['mp3','wav','ogg','m4a','flac'].includes(e)){const u=URL.createObjectURL(file.blob);c.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:60px;margin-bottom:14px">🎵</div><h3 style="margin-bottom:14px">${file.name}</h3><audio controls src="${u}" style="width:100%;max-width:400px"></audio></div>`}
+    else if(['mp4','webm','mov'].includes(e)){const u=URL.createObjectURL(file.blob);c.innerHTML=`<video controls src="${u}" style="width:100%;border-radius:8px"></video>`}
+    else if(e==='pdf'){const u=URL.createObjectURL(file.blob);c.innerHTML=`<iframe src="${u}" style="width:100%;height:100%;border:none"></iframe>`}
+    else if(e==='md'){const txt=await file.blob.text();c.innerHTML=`<div class="md-body">${marked.parse(txt)}</div>`}
+    else if(['txt','log','rtf','env','gitignore','cfg','ini'].includes(e)){const txt=await file.blob.text();c.innerHTML=`<pre>${esc(txt)}</pre>`}
+    else if(e==='json'){const txt=await file.blob.text();try{c.innerHTML=`<pre>${synHL(JSON.stringify(JSON.parse(txt),null,2))}</pre>`}catch{c.innerHTML=`<pre>${esc(txt)}</pre>`}}
+    else if(['js','ts','py','html','css','sh','sol','yaml','yml','xml','jsx','tsx','go','rs'].includes(e)){const txt=await file.blob.text();c.innerHTML=`<pre>${synHL(esc(txt))}</pre>`}
+    else if(e==='csv'){const txt=await file.blob.text();c.innerHTML=csvTbl(txt)}
+    else if(e==='svg'){c.innerHTML=await file.blob.text()}
+    else{try{const txt=await file.blob.text();if(txt.length<500000&&/[\x20-\x7E\n\r\t]/.test(txt.slice(0,1000))){c.innerHTML=`<pre>${esc(txt)}</pre>`}else throw 0}catch{const u=URL.createObjectURL(file.blob);c.innerHTML=`<div style="text-align:center;padding:40px"><div style="font-size:60px;margin-bottom:14px">${gi(e)}</div><h3>${file.name}</h3><p style="color:var(--text2)">${fs(file.blob.size)}</p><a href="${u}" download="${file.name}" style="display:inline-block;padding:12px 24px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;margin-top:12px">⬇️ Download</a></div>`}}
+  }catch(err){c.innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${err.message}</p></div>`}
 }
 
-function formatSize(bytes) {
-  if (!bytes) return '';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1048576).toFixed(1) + ' MB';
+function closeViewer(){document.getElementById('viewer-overlay').classList.remove('open')}
+function downloadCurrent(){if(!curViewer)return;if(curViewer.src==='ws'){window.open(`https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${curViewer.path}`,'_blank');return}if(curViewer.blob){const u=URL.createObjectURL(curViewer.blob);const a=document.createElement('a');a.href=u;a.download=curViewer.name;a.click();URL.revokeObjectURL(u);toast('⬇️ Downloading...')}}
+function shareCurrent(){if(curViewer?.src==='ws'){navigator.clipboard.writeText(`https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${curViewer.path}`).then(()=>toast('🔗 Link copied!'))}else if(curViewer?.blob){const u=URL.createObjectURL(curViewer.blob);if(navigator.share){navigator.share({title:curViewer.name,url:u}).catch(()=>{})}else{navigator.clipboard.writeText(u).then(()=>toast('🔗 Link copied!'))}}}
+
+// ============================================================
+// GITHUB REPOS
+// ============================================================
+function renderRepos(){
+  const c=document.getElementById('repo-list');
+  const langIcon={'JavaScript':'⚡','TypeScript':'💎','HTML':'🌐','Shell':'⚙️','Go':'🔷','Python':'🐍',null:'📁'};
+  c.innerHTML=REPOS.map(r=>`
+    <div class="repo-header" onclick="window.open('${r.url}','_blank')">
+      <div class="rh-top"><span style="font-size:18px">${langIcon[r.lang]||'📁'}</span><span class="rh-name">${r.name}</span>${r.lang?`<span class="rh-lang">${r.lang}</span>`:''}</div>
+      <div class="rh-desc">${r.desc}</div>
+      <div class="rh-meta"><span>🔗 github.com/jtjustinktaylor-lgtm/${r.name}</span>${r.live?`<span style="color:var(--accent)">● Live</span>`:''}</div>
+      ${r.live?`<a href="${r.live}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:inline-block;margin-top:8px;padding:6px 14px;background:var(--accent);color:#000;border-radius:8px;font-size:11px;font-weight:700">🚀 Open Live App</a>`:''}
+    </div>`).join('');
+}
+function filterRepos(q){const items=document.querySelectorAll('#repo-list .repo-header');const lq=q.toLowerCase();items.forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(lq)?'':'none'})}
+
+// ============================================================
+// LINKS
+// ============================================================
+function renderLinks(){
+  const c=document.getElementById('link-list');let h='';
+  Object.entries(LINKS).forEach(([cat,links])=>{h+=`<div class="section-title">${cat}</div>`;links.forEach(l=>{h+=`<a class="link-item" href="${l.u}" target="_blank" rel="noopener"><span class="li">${l.i}</span><div class="linfo"><div class="ln">${l.n}</div><div class="lu">${l.d}</div></div><span class="arrow">↗</span></a>`})});
+  c.innerHTML=h;
+}
+function filterLinks(q){const items=document.querySelectorAll('#link-list .link-item,#link-list .section-title');const lq=q.toLowerCase();items.forEach(el=>{if(el.classList.contains('section-title')){let next=el.nextElementSibling,has=false;while(next&&!next.classList.contains('section-title')){if(next.textContent.toLowerCase().includes(lq))has=true;next=next.nextElementSibling}el.style.display=has||!q?'':'none'}else{el.style.display=el.textContent.toLowerCase().includes(lq)||!q?'':'none'}})}
+
+// ============================================================
+// UPLOAD
+// ============================================================
+async function handleUpload(files){
+  for(const f of files){await dbPut({id:'u-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name:f.name,size:f.size,type:f.type,ext:ext(f.name),blob:f,at:Date.now()})}
+  toast(`📤 ${files.length} file(s) stored!`);renderUploaded();updUC();
+}
+async function renderUploaded(){
+  const c=document.getElementById('uploaded-list');const files=await dbAll();
+  if(!files.length){c.innerHTML='<div class="empty"><div class="ei">📭</div><p>No files stored yet</p></div>';return}
+  files.sort((a,b)=>b.at-a.at);
+  c.innerHTML=files.map(f=>`<div class="file-item"><span class="fi">${gi(f.ext)}</span><div class="finfo" onclick="viewStored(${JSON.stringify({name:f.name,blob:f.blob}).replace(/"/g,'&quot;')})"><div class="fn">${f.name}</div><div class="fm">${fs(f.size)} • ${new Date(f.at).toLocaleDateString()}</div></div><button onclick="delStored('${f.id}')" style="background:none;border:none;color:var(--danger);font-size:14px;cursor:pointer;padding:4px 8px">🗑️</button></div>`).join('');
+}
+async function delStored(id){await dbDel(id);renderUploaded();updUC();toast('🗑️ Deleted')}
+async function updUC(){const f=await dbAll();const el=document.getElementById('uc');if(el)el.textContent=f.length}
+
+// ============================================================
+// ZIP
+// ============================================================
+async function handleZipUpload(files){
+  if(!files.length)return;
+  try{
+    const zip=await JSZip.loadAsync(files[0]);curZip=[];
+    zip.forEach((p,e)=>{if(!e.dir)curZip.push({path:p,entry:e,name:p.split('/').pop()})});
+    document.getElementById('zip-info').textContent=`${files[0].name} — ${curZip.length} files`;
+    document.getElementById('zip-files').innerHTML=curZip.map(f=>`<div class="zip-file"><span class="zf-icon">${gi(ext(f.name))}</span><span class="zf-name">${f.path}</span></div>`).join('');
+    document.getElementById('zip-modal').classList.add('open');
+  }catch{toast('❌ Invalid ZIP file')}
+}
+function closeZipModal(){document.getElementById('zip-modal').classList.remove('open')}
+async function extractAllZip(){
+  closeZipModal();toast('📦 Extracting...');
+  for(const f of curZip){const blob=await f.entry.async('blob');await dbPut({id:'z-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name:f.name,size:blob.size,type:blob.type,ext:ext(f.name),blob,at:Date.now(),src:'zip'})}
+  toast(`✅ ${curZip.length} files extracted!`);renderUploaded();updUC();curZip=[];
 }
 
-function syntaxHighlight(code) {
-  return code
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/(".*?")/g, '<span style="color:#ce9178">$1</span>')
-    .replace(/\b(\d+)\b/g, '<span style="color:#b5cea8">$1</span>')
-    .replace(/\b(true|false|null|undefined|None|True|False)\b/g, '<span style="color:#569cd6">$1</span>')
-    .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm, '<span style="color:#6a9955">$1</span>')
-    .replace(/\b(function|const|let|var|return|if|else|for|while|class|import|export|from|def|async|await|try|catch|throw|new|this)\b/g, '<span style="color:#c586c0">$1</span>');
+// ============================================================
+// SYNC (pulls GitHub metadata — offline stores the list)
+// ============================================================
+async function syncGitHub(){
+  toast('🔄 Syncing GitHub repos...');
+  try{
+    const res=await fetch('https://api.github.com/users/jtjustinktaylor-lgtm/repos?per_page=100&sort=updated');
+    if(res.ok){
+      const repos=await res.json();
+      localStorage.setItem('pipeline-repos',JSON.stringify(repos));
+      localStorage.setItem('pipeline-sync',Date.now());
+      toast(`✅ Synced ${repos.length} repos!`);
+    }else{toast('⚠️ Sync failed — using cached data')}
+  }catch{toast('📴 Offline — using cached data')}
 }
 
-function csvToTable(csv) {
-  const lines = csv.trim().split('\n');
-  if (lines.length === 0) return '<p>Empty CSV</p>';
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  let html = '<table><thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-    html += '<tr>' + cols.map(c => `<td>${escapeHtml(c)}</td>`).join('') + '</tr>';
-  }
-  html += '</tbody></table>';
-  return html;
+// ============================================================
+// SYNTAX HIGHLIGHT
+// ============================================================
+function synHL(code){
+  return code.replace(/(".*?"|'.*?'|`.*?`)/g,'<span style="color:#ce9178">$1</span>')
+    .replace(/\b(\d+\.?\d*)\b/g,'<span style="color:#b5cea8">$1</span>')
+    .replace(/\b(true|false|null|undefined|None|True|False|nil)\b/g,'<span style="color:#569cd6">$1</span>')
+    .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm,'<span style="color:#6a9955">$1</span>')
+    .replace(/\b(function|const|let|var|return|if|else|for|while|class|import|export|from|def|async|await|try|catch|throw|new|this|self|struct|func|fn|pub|mod|use|impl|trait|type|interface|extends|implements|super|static|public|private|protected)\b/g,'<span style="color:#c586c0">$1</span>');
+}
+function csvTbl(csv){
+  const lines=csv.trim().split('\n');if(!lines.length)return'<p>Empty</p>';
+  const hdr=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  let h='<table><thead><tr>'+hdr.map(h=>`<th>${esc(h)}</th>`).join('')+'</tr></thead><tbody>';
+  for(let i=1;i<lines.length;i++){const c=lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));h+='<tr>'+c.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>'}
+  return h+'</tbody></table>';
 }
 
-function refreshAll() {
-  renderFileBrowser();
-  renderLinks();
-  updateUploadCount();
-  toast('🔄 Refreshed');
-}
-
-// ==========================================
+// ============================================================
 // DRAG & DROP
-// ==========================================
-function setupDragDrop() {
-  const zone = document.getElementById('upload-zone');
-  if (!zone) return;
-
-  zone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    zone.classList.add('dragover');
-  });
-  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-  zone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    zone.classList.remove('dragover');
-    const files = e.dataTransfer.files;
-    if (files.length) {
-      const hasZip = Array.from(files).some(f => f.name.endsWith('.zip'));
-      if (hasZip && files.length === 1) {
-        handleZipUpload(files);
-      } else {
-        handleUpload(files);
-      }
-    }
-  });
+// ============================================================
+function setupDD(){
+  const z=document.getElementById('upload-zone');if(!z)return;
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});
+  z.addEventListener('dragleave',()=>z.classList.remove('dragover'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');const f=e.dataTransfer.files;if(f.length){if(Array.from(f).some(x=>x.name.endsWith('.zip'))&&f.length===1)handleZipUpload(f);else handleUpload(f)}});
 }
 
-// ==========================================
+// ============================================================
+// OFFLINE / SERVICE WORKER
+// ============================================================
+function registerSW(){
+  if('serviceWorker' in navigator){
+    const swCode=`
+const CACHE='pipeline-v2';
+const ASSETS=['/','/index.html'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
+self.addEventListener('fetch',e=>{
+  if(e.request.url.includes('cdn.jsdelivr.net')){
+    e.respondWith(caches.match(e.request).then(r=>{if(r)return r;return fetch(e.request).then(res=>{const c=res.clone();caches.open(CACHE).then(cache=>cache.put(e.request,c));return res})}).catch(()=>new Response('',{status:503})));
+    return;
+  }
+  e.respondWith(fetch(e.request).then(res=>{const c=res.clone();if(res.status===200)caches.open(CACHE).then(cache=>cache.put(e.request,c));return res}).catch(()=>caches.match(e.request)));
+});
+`;
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    const url=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).then(()=>console.log('SW registered')).catch(e=>console.log('SW error:',e));
+  }
+}
+
+function checkOffline(){
+  const badge=document.getElementById('offline-badge');
+  const update=()=>{badge.classList.toggle('show',!navigator.onLine)};
+  window.addEventListener('online',update);window.addEventListener('offline',update);update();
+}
+
+// ============================================================
 // INIT
-// ==========================================
-async function init() {
+// ============================================================
+async function init(){
   await initDB();
-  renderFileBrowser();
+  renderFiles();
   renderLinks();
-  updateUploadCount();
-  setupDragDrop();
+  updUC();
+  setupDD();
+  registerSW();
+  checkOffline();
+  // Pre-cache CDN libs
+  caches.open('pipeline-v2').then(c=>{
+    c.add('https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js').catch(()=>{});
+    c.add('https://cdn.jsdelivr.net/npm/marked@9/marked.min.js').catch(()=>{});
+  });
 }
-
 init();
 </script>
 </body>
