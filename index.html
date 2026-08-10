@@ -153,7 +153,7 @@ a{color:var(--accent);text-decoration:none}
   <h1>⚡ <span class="logo">Pipeline</span></h1>
   <div class="header-right">
     <span class="offline-badge" id="offline-badge">OFFLINE</span>
-    <button class="hdr-btn" onclick="syncGitHub()" title="Sync GitHub">🔄</button>
+    <button class="hdr-btn" onclick="syncWorkspaceFiles(true)" title="Sync workspace files">🔄</button>
   </div>
 </div>
 
@@ -429,10 +429,13 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 // ============================================================
 // FILE BROWSER
 // ============================================================
-function renderFiles(){
+async function renderFiles(){
   const c=document.getElementById('file-list'),bc=document.getElementById('breadcrumb'),sb=document.getElementById('stats-bar');
   let tf=0;Object.values(WS).forEach(cat=>{if(cat.files)tf+=cat.files.length;else Object.values(cat).forEach(s=>{if(s&&s.files)tf+=s.files.length})});
-  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> files</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><div class="chip">🔗 <b>${Object.values(LINKS).reduce((a,l)=>a+l.length,0)}</b> links</div><div class="chip">💾 <b id="uc">0</b> stored</div>`;
+  // Update stats to show workspace count
+  const wsFiles=await dbAll().then(f=>f.filter(x=>x.src==='ws')).catch(()=>[]);
+  const wsCount=wsFiles.length;
+  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> paths</div><div class="chip">💾 <b>${wsCount}</b> cached</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><span id="sync-status" style="font-size:10px;color:var(--text2)"></span>`;
 
   if(curPath.length===0){bc.innerHTML='<span class="cur">🏠 Home</span>'}
   else{let h='<span onclick="navTo([])">🏠</span>';curPath.forEach((p,i)=>{h+='<span class="sep">›</span>';h+=i===curPath.length-1?`<span class="cur">${p}</span>`:`<span onclick="navTo(${JSON.stringify(curPath.slice(0,i+1))})">${p}</span>`});bc.innerHTML=h}
@@ -459,9 +462,32 @@ function filterFiles(q){const items=document.querySelectorAll('#file-list .file-
 // ============================================================
 function findDesc(p,n){for(const[cat,cd]of Object.entries(WS)){if(cd.files){const f=cd.files.find(f=>f.n===n);if(f)return f.d}else{for(const[sub,sd]of Object.entries(cd)){if(sd&&sd.files){const f=sd.files.find(f=>f.n===n);if(f)return f.d}}}}return null}
 
-function viewWSFile(path,name,type){
+async function viewWSFile(path,name,type){
   const o=document.getElementById('viewer-overlay'),c=document.getElementById('v-content'),t=document.getElementById('v-title');
-  t.textContent=name;curViewer={name,path,type,src:'ws'};
+  t.textContent=name;
+  
+  // Try to load from IndexedDB first
+  const stored=await dbGet('ws-'+path);
+  if(stored){
+    curViewer={name:stored.name,blob:stored.blob,src:'stored',path};
+    // Use the stored file viewer for actual content
+    c.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:8px;color:var(--text2)">Loading...</p></div>';
+    o.classList.add('open');
+    const e=stored.ext;
+    try{
+      if(['png','jpg','jpeg','gif','webp','bmp'].includes(e)){const u=URL.createObjectURL(stored.blob);c.innerHTML=`<img src="${u}" alt="${name}">`}
+      else if(['mp3','wav','ogg','m4a'].includes(e)){const u=URL.createObjectURL(stored.blob);c.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:60px;margin-bottom:14px">🎵</div><h3>${name}</h3><audio controls src="${u}" style="width:100%;max-width:400px;margin-top:12px"></audio></div>`}
+      else if(e==='md'){const txt=await stored.blob.text();c.innerHTML=`<div class="md-body">${marked.parse(txt)}</div>`}
+      else if(e==='json'){const txt=await stored.blob.text();try{c.innerHTML=`<pre>${synHL(JSON.stringify(JSON.parse(txt),null,2))}</pre>`}catch{c.innerHTML=`<pre>${esc(txt)}</pre>`}}
+      else if(['js','ts','tsx','jsx','py','html','css','sh','sol','yaml','yml','xml','go'].includes(e)){const txt=await stored.blob.text();c.innerHTML=`<pre>${synHL(esc(txt))}</pre>`}
+      else if(e==='csv'){const txt=await stored.blob.text();c.innerHTML=csvTbl(txt)}
+      else{const txt=await stored.blob.text();c.innerHTML=`<pre>${esc(txt)}</pre>`}
+    }catch(err){c.innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${err.message}</p></div>`}
+    return;
+  }
+  
+  // Fallback: show info card with GitHub link
+  curViewer={name,path,type,src:'ws'};
   const desc=findDesc(path,name);
   const e=ext(name);
   c.innerHTML=`
@@ -472,13 +498,8 @@ function viewWSFile(path,name,type){
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
         <div style="font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Path</div>
         <div style="font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all">${path}</div>
-        <div style="font-size:10px;color:var(--text2);margin-top:10px;margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Type</div>
-        <div style="font-size:12px">${(type||e).toUpperCase()}</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-        <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">📂 View on GitHub</a>
-        <button onclick="navigator.clipboard.writeText('${path}').then(()=>toast('📋 Copied!'))" style="padding:10px 18px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">📋 Copy Path</button>
-      </div>
+      <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">📂 View on GitHub</a>
     </div>`;
   o.classList.add('open');
 }
@@ -648,6 +669,107 @@ function checkOffline(){
 }
 
 // ============================================================
+// WORKSPACE FILE SYNC — auto-fetch bundle & load into IndexedDB
+// ============================================================
+const BUNDLE_URL='files-bundle.json.gz';
+const BUNDLE_CACHE='pipeline-bundle-v1';
+
+async function syncWorkspaceFiles(force=false){
+  const statusEl=document.getElementById('sync-status');
+  const stored=await dbAll();
+  const wsFiles=stored.filter(f=>f.src==='ws');
+  
+  // Check if already synced (unless forced)
+  const lastSync=localStorage.getItem('pipeline-ws-sync');
+  if(!force && wsFiles.length>0 && lastSync && Date.now()-Number(lastSync)<3600000){
+    if(statusEl)statusEl.textContent=`${wsFiles.length} files cached`;
+    return;
+  }
+  
+  if(statusEl)statusEl.textContent='Syncing workspace...';
+  
+  try{
+    // Try cache first
+    let data;
+    const cache=await caches.open(BUNDLE_CACHE);
+    let resp=await cache.match(BUNDLE_URL);
+    
+    if(!resp){
+      // Fetch from server
+      resp=await fetch(BUNDLE_URL);
+      if(resp.ok){
+        const clone=resp.clone();
+        cache.put(BUNDLE_URL,clone);
+      }
+    }
+    
+    if(!resp||!resp.ok){
+      if(statusEl)statusEl.textContent='Sync failed — offline?';
+      return;
+    }
+    
+    // Decompress gzipped JSON
+    const compressed=await resp.arrayBuffer();
+    const ds=new DecompressionStream('gzip');
+    const writer=ds.writable.getWriter();
+    writer.write(new Uint8Array(compressed));
+    writer.close();
+    const reader=ds.readable.getReader();
+    const chunks=[];
+    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value)}
+    const totalLen=chunks.reduce((a,c)=>a+c.length,0);
+    const combined=new Uint8Array(totalLen);
+    let offset=0;
+    for(const chunk of chunks){combined.set(chunk,offset);offset+=chunk.length}
+    
+    const text=new TextDecoder().decode(combined);
+    const files=JSON.parse(text);
+    
+    // Clear old workspace files
+    const tx=db.transaction(STORE,'readwrite');
+    const store=tx.objectStore(STORE);
+    for(const f of wsFiles){store.delete(f.id)}
+    
+    // Wait for clear to complete
+    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
+    
+    // Load into IndexedDB in batches
+    const BATCH=50;
+    for(let i=0;i<files.length;i+=BATCH){
+      const batch=files.slice(i,i+BATCH);
+      const tx2=db.transaction(STORE,'readwrite');
+      const s2=tx2.objectStore(STORE);
+      for(const f of batch){
+        const ext=f.p.split('.').pop().toLowerCase();
+        const blob=new Blob([f.c],{type:'text/plain'});
+        s2.put({
+          id:'ws-'+f.p,
+          name:f.p.split('/').pop(),
+          path:f.p,
+          size:blob.size,
+          type:'text/plain',
+          ext:ext,
+          blob:blob,
+          at:Date.now(),
+          src:'ws'
+        });
+      }
+      await new Promise((res,rej)=>{tx2.oncomplete=res;tx2.onerror=rej});
+    }
+    
+    localStorage.setItem('pipeline-ws-sync',Date.now().toString());
+    if(statusEl)statusEl.textContent=`${files.length} files synced ✓`;
+    toast(`✅ ${files.length} workspace files loaded!`);
+    renderFiles();
+    updUC();
+    
+  }catch(err){
+    console.error('Sync error:',err);
+    if(statusEl)statusEl.textContent='Sync error';
+  }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 async function init(){
@@ -658,6 +780,10 @@ async function init(){
   setupDD();
   registerSW();
   checkOffline();
+  
+  // Auto-sync workspace files on first load
+  syncWorkspaceFiles();
+  
   // Pre-cache CDN libs
   caches.open('pipeline-v2').then(c=>{
     c.add('https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js').catch(()=>{});
