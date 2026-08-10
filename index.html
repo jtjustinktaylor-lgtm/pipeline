@@ -435,7 +435,8 @@ async function renderFiles(){
   // Update stats to show workspace count
   const wsFiles=await dbAll().then(f=>f.filter(x=>x.src==='ws')).catch(()=>[]);
   const wsCount=wsFiles.length;
-  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> paths</div><div class="chip">💾 <b>${wsCount}</b> cached</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><span id="sync-status" style="font-size:10px;color:var(--text2)"></span>`;
+  // Add ZIPs with direct download links
+  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> paths</div><div class="chip">💾 <b>${wsCount}</b> cached</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><div class="chip">📦 <b>15</b> ZIPs</div><span id="sync-status" style="font-size:10px;color:var(--text2)"></span>`;
 
   if(curPath.length===0){bc.innerHTML='<span class="cur">🏠 Home</span>'}
   else{let h='<span onclick="navTo([])">🏠</span>';curPath.forEach((p,i)=>{h+='<span class="sep">›</span>';h+=i===curPath.length-1?`<span class="cur">${p}</span>`:`<span onclick="navTo(${JSON.stringify(curPath.slice(0,i+1))})">${p}</span>`});bc.innerHTML=h}
@@ -486,10 +487,11 @@ async function viewWSFile(path,name,type){
     return;
   }
   
-  // Fallback: show info card with GitHub link
+  // Fallback: show info card with direct download
   curViewer={name,path,type,src:'ws'};
   const desc=findDesc(path,name);
   const e=ext(name);
+  const dlUrl=`https://jtjustinktaylor-lgtm.github.io/pipeline/${path}`;
   c.innerHTML=`
     <div style="text-align:center;padding:20px">
       <div style="font-size:60px;margin-bottom:14px">${gi(e)}</div>
@@ -499,7 +501,10 @@ async function viewWSFile(path,name,type){
         <div style="font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Path</div>
         <div style="font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all">${path}</div>
       </div>
-      <a href="https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">📂 View on GitHub</a>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <a href="${dlUrl}" download="${name}" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">⬇️ Download</a>
+        <a href="https://github.com/jtjustinktaylor-lgtm/pipeline/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px">📂 GitHub</a>
+      </div>
     </div>`;
   o.classList.add('open');
 }
