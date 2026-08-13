@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0a">
 <title>Pipeline</title>
+<link rel="manifest" href="manifest.json">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;--accent:#00ff88;--accent2:#00cc6a;--accent-dim:rgba(0,255,136,.1);--text:#e0e0e0;--text2:#888;--border:#2a2a2a;--danger:#ff4444;--warn:#ffaa00;--info:#00aaff;--radius:12px}
@@ -234,10 +235,15 @@ a{color:var(--accent);text-decoration:none}
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
 <script>
 // ============================================================
-// PIPELINE v2.0 — Mobile File Hub with GitHub Integration
+// PIPELINE v3.0 — Mobile File Hub (all bugs fixed)
 // ============================================================
 
-const DB='pipeline-v2', DBV=1, STORE='files';
+const DB='pipeline-v3', DBV=1, STORE='files';
+const REPO_OWNER='jtjustinktaylor-lgtm';
+const REPO_NAME='matrix-workspace';
+const RAW_BASE=`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
+const GITHUB_BLOB_BASE=`https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main`;
+
 let db=null, curPath=[], curViewer=null, curZip=[];
 
 // ============================================================
@@ -278,20 +284,11 @@ const WS={
     {n:'treasury.js',p:'paxeer-agent-wallet/treasury.js',t:'js',d:'Multi-asset treasury'},
     {n:'commerce.js',p:'paxeer-agent-wallet/commerce.js',t:'js',d:'Commerce engine'},
     {n:'api.js',p:'paxeer-agent-wallet/api.js',t:'js',d:'REST API endpoints'},
-    {n:'agentkit-integration/',p:'paxeer-agent-wallet/agentkit-integration/',t:'folder',d:'Coinbase AgentKit v0.11.0 integration'},
-  ]},
-  'Halluc Plumbing':{files:[
-    {n:'halluc-deploy/',p:'halluc-deploy/',t:'folder',d:'Business management PWA — 19 pages, invoices, quotes, scheduling'},
-    {n:'index.html',p:'halluc-deploy/index.html',t:'html',d:'Main app entry'},
-    {n:'app.js',p:'halluc-deploy/app.js',t:'js',d:'Core app logic'},
-    {n:'style.css',p:'halluc-deploy/style.css',t:'css',d:'Styles'},
+    {n:'agentkit-integration/',p:'paxeer-agent-wallet/agentkit-integration/',t:'folder',d:'Coinbase AgentKit + Privy wallet integration'},
+    {n:'README.md',p:'paxeer-agent-wallet/README.md',t:'md',d:'Agent wallet documentation'},
   ]},
   'FieldFlow':{files:[
-    {n:'fieldflow/',p:'fieldflow/',t:'folder',d:'FieldFlow CRM v3.0 — React/Vite/Tailwind field service management'},
-    {n:'COMPETITIVE-ANALYSIS.md',p:'fieldflow/COMPETITIVE-ANALYSIS.md',t:'md',d:'Competitive landscape analysis'},
-  ]},
-  'FieldBase':{files:[
-    {n:'fieldbase/',p:'fieldbase/',t:'folder',d:'Generic field service platform — 181 templates, 23 pages, 20 languages'},
+    {n:'fieldflow/',p:'fieldflow/',t:'folder',d:'FieldFlow CRM v3.0 — field service management platform'},
   ]},
   'LootAgent':{files:[
     {n:'lootagent/',p:'lootagent/',t:'folder',d:'AI money agent — React 19 + Vite + Tailwind + ethers.js v6'},
@@ -403,6 +400,10 @@ const ext=(n)=>{const p=n.split('.');return p.length>1?p.pop().toLowerCase():''}
 const esc=(t)=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
 const fs=(b)=>{if(!b)return'';if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB'};
 
+// URL helpers — the key fix!
+function rawUrl(path){return RAW_BASE+'/'+encodeURI(path)}
+function githubUrl(path){return GITHUB_BLOB_BASE+'/'+encodeURI(path)}
+
 // ============================================================
 // INDEXEDDB
 // ============================================================
@@ -432,11 +433,9 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function renderFiles(){
   const c=document.getElementById('file-list'),bc=document.getElementById('breadcrumb'),sb=document.getElementById('stats-bar');
   let tf=0;Object.values(WS).forEach(cat=>{if(cat.files)tf+=cat.files.length;else Object.values(cat).forEach(s=>{if(s&&s.files)tf+=s.files.length})});
-  // Update stats to show workspace count
   const wsFiles=await dbAll().then(f=>f.filter(x=>x.src==='ws')).catch(()=>[]);
   const wsCount=wsFiles.length;
-  // Add ZIPs with direct download links
-  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> paths</div><div class="chip">💾 <b>${wsCount}</b> cached</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><div class="chip">📦 <b>15</b> ZIPs</div><span id="sync-status" style="font-size:10px;color:var(--text2)"></span>`;
+  sb.innerHTML=`<div class="chip">📁 <b>${tf}</b> paths</div><div class="chip">💾 <b>${wsCount}</b> cached</div><div class="chip">🐙 <b>${REPOS.length}</b> repos</div><span id="sync-status" style="font-size:10px;color:var(--text2)"></span>`;
 
   if(curPath.length===0){bc.innerHTML='<span class="cur">🏠 Home</span>'}
   else{let h='<span onclick="navTo([])">🏠</span>';curPath.forEach((p,i)=>{h+='<span class="sep">›</span>';h+=i===curPath.length-1?`<span class="cur">${p}</span>`:`<span onclick="navTo(${JSON.stringify(curPath.slice(0,i+1))})">${p}</span>`});bc.innerHTML=h}
@@ -459,7 +458,7 @@ function navTo(p){curPath=p;renderFiles()}
 function filterFiles(q){const items=document.querySelectorAll('#file-list .file-item,#file-list .folder-item');const lq=q.toLowerCase();items.forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(lq)?'':'none'})}
 
 // ============================================================
-// WORKSPACE FILE VIEWER
+// WORKSPACE FILE VIEWER (FIXED: proper raw URLs + fetch fallback)
 // ============================================================
 function findDesc(p,n){for(const[cat,cd]of Object.entries(WS)){if(cd.files){const f=cd.files.find(f=>f.n===n);if(f)return f.d}else{for(const[sub,sd]of Object.entries(cd)){if(sd&&sd.files){const f=sd.files.find(f=>f.n===n);if(f)return f.d}}}}return null}
 
@@ -467,11 +466,10 @@ async function viewWSFile(path,name,type){
   const o=document.getElementById('viewer-overlay'),c=document.getElementById('v-content'),t=document.getElementById('v-title');
   t.textContent=name;
   
-  // Try to load from IndexedDB first
+  // Try IndexedDB first
   const stored=await dbGet('ws-'+path);
   if(stored){
     curViewer={name:stored.name,blob:stored.blob,src:'stored',path};
-    // Use the stored file viewer for actual content
     c.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:8px;color:var(--text2)">Loading...</p></div>';
     o.classList.add('open');
     const e=stored.ext;
@@ -487,26 +485,51 @@ async function viewWSFile(path,name,type){
     return;
   }
   
-  // Fallback: show info card with direct download
-  curViewer={name,path,type,src:'ws'};
-  const desc=findDesc(path,name);
-  const e=ext(name);
-  const dlUrl=`https://jtjustinktaylor-lgtm.github.io/pipeline/${path}`;
-  c.innerHTML=`
-    <div style="text-align:center;padding:20px">
-      <div style="font-size:60px;margin-bottom:14px">${gi(e)}</div>
-      <h2 style="color:var(--accent);margin-bottom:6px;font-size:18px">${name}</h2>
-      <p style="color:var(--text2);margin-bottom:16px;font-size:13px">${desc||'Workspace file'}</p>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
-        <div style="font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Path</div>
-        <div style="font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all">${path}</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-        <a href="${dlUrl}" download="${name}" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">⬇️ Download</a>
-        <a href="https://github.com/jtjustinktaylor-lgtm/pipeline/blob/main/${path}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px">📂 GitHub</a>
-      </div>
-    </div>`;
+  // Not in IndexedDB — try fetching from raw GitHub
+  c.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:8px;color:var(--text2)">Fetching from GitHub...</p></div>';
   o.classList.add('open');
+  curViewer={name,path,type,src:'ws'};
+  
+  try{
+    const resp=await fetch(rawUrl(path));
+    if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
+    const blob=await resp.blob();
+    const e=ext(name);
+    
+    // Store in IndexedDB for next time
+    await dbPut({id:'ws-'+path,name,path:path,size:blob.size,type:'text/plain',ext:e,blob,at:Date.now(),src:'ws'});
+    
+    if(['png','jpg','jpeg','gif','webp','bmp'].includes(e)){const u=URL.createObjectURL(blob);c.innerHTML=`<img src="${u}" alt="${name}">`}
+    else if(['mp3','wav','ogg','m4a'].includes(e)){const u=URL.createObjectURL(blob);c.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:60px;margin-bottom:14px">🎵</div><h3>${name}</h3><audio controls src="${u}" style="width:100%;max-width:400px;margin-top:12px"></audio></div>`}
+    else if(e==='md'){const txt=await blob.text();c.innerHTML=`<div class="md-body">${marked.parse(txt)}</div>`}
+    else if(e==='json'){const txt=await blob.text();try{c.innerHTML=`<pre>${synHL(JSON.stringify(JSON.parse(txt),null,2))}</pre>`}catch{c.innerHTML=`<pre>${esc(txt)}</pre>`}}
+    else if(['js','ts','tsx','jsx','py','html','css','sh','sol','yaml','yml','xml','go'].includes(e)){const txt=await blob.text();c.innerHTML=`<pre>${synHL(esc(txt))}</pre>`}
+    else if(e==='csv'){const txt=await blob.text();c.innerHTML=csvTbl(txt)}
+    else{const txt=await blob.text();c.innerHTML=`<pre>${esc(txt)}</pre>`}
+    
+    curViewer.blob=blob;
+    curViewer.src='stored';
+    updUC();
+  }catch(err){
+    // Last resort: show info card with working links
+    const desc=findDesc(path,name);
+    const e=ext(name);
+    c.innerHTML=`
+      <div style="text-align:center;padding:20px">
+        <div style="font-size:60px;margin-bottom:14px">${gi(e)}</div>
+        <h2 style="color:var(--accent);margin-bottom:6px;font-size:18px">${name}</h2>
+        <p style="color:var(--text2);margin-bottom:16px;font-size:13px">${desc||'Workspace file'}</p>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Path</div>
+          <div style="font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all">${path}</div>
+        </div>
+        <p style="color:var(--danger);font-size:12px;margin-bottom:16px">⚠️ Could not fetch file: ${err.message}</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          <a href="${rawUrl(path)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--accent);color:#000;border-radius:10px;font-weight:700;font-size:13px">⬇️ Raw File</a>
+          <a href="${githubUrl(path)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px">📂 View on GitHub</a>
+        </div>
+      </div>`;
+  }
 }
 
 // ============================================================
@@ -534,8 +557,36 @@ async function viewStored(file){
 }
 
 function closeViewer(){document.getElementById('viewer-overlay').classList.remove('open')}
-function downloadCurrent(){if(!curViewer)return;if(curViewer.src==='ws'){window.open(`https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${curViewer.path}`,'_blank');return}if(curViewer.blob){const u=URL.createObjectURL(curViewer.blob);const a=document.createElement('a');a.href=u;a.download=curViewer.name;a.click();URL.revokeObjectURL(u);toast('⬇️ Downloading...')}}
-function shareCurrent(){if(curViewer?.src==='ws'){navigator.clipboard.writeText(`https://github.com/jtjustinktaylor-lgtm/matrix-workspace/blob/main/${curViewer.path}`).then(()=>toast('🔗 Link copied!'))}else if(curViewer?.blob){const u=URL.createObjectURL(curViewer.blob);if(navigator.share){navigator.share({title:curViewer.name,url:u}).catch(()=>{})}else{navigator.clipboard.writeText(u).then(()=>toast('🔗 Link copied!'))}}}
+
+function downloadCurrent(){
+  if(!curViewer)return;
+  // Stored file: download from blob
+  if(curViewer.src==='stored'&&curViewer.blob){
+    const u=URL.createObjectURL(curViewer.blob);
+    const a=document.createElement('a');a.href=u;a.download=curViewer.name;a.click();
+    URL.revokeObjectURL(u);toast('⬇️ Downloading...');
+    return;
+  }
+  // Workspace file: open raw GitHub URL
+  if(curViewer.src==='ws'||curViewer.src==='raw'){
+    window.open(rawUrl(curViewer.path),'_blank');
+    return;
+  }
+}
+
+function shareCurrent(){
+  if(!curViewer)return;
+  if(curViewer.src==='ws'||curViewer.src==='raw'){
+    navigator.clipboard.writeText(rawUrl(curViewer.path)).then(()=>toast('🔗 Raw link copied!'));
+    return;
+  }
+  if(curViewer.src==='stored'&&curViewer.blob){
+    const u=URL.createObjectURL(curViewer.blob);
+    if(navigator.share){navigator.share({title:curViewer.name,url:u}).catch(()=>{})}
+    else{navigator.clipboard.writeText(u).then(()=>toast('🔗 Link copied!'))}
+    return;
+  }
+}
 
 // ============================================================
 // GITHUB REPOS
@@ -574,7 +625,7 @@ async function renderUploaded(){
   const c=document.getElementById('uploaded-list');const files=await dbAll();
   if(!files.length){c.innerHTML='<div class="empty"><div class="ei">📭</div><p>No files stored yet</p></div>';return}
   files.sort((a,b)=>b.at-a.at);
-  c.innerHTML=files.map(f=>`<div class="file-item"><span class="fi">${gi(f.ext)}</span><div class="finfo" onclick="viewStored(${JSON.stringify({name:f.name,blob:f.blob}).replace(/"/g,'&quot;')})"><div class="fn">${f.name}</div><div class="fm">${fs(f.size)} • ${new Date(f.at).toLocaleDateString()}</div></div><button onclick="delStored('${f.id}')" style="background:none;border:none;color:var(--danger);font-size:14px;cursor:pointer;padding:4px 8px">🗑️</button></div>`).join('');
+  c.innerHTML=files.map(f=>`<div class="file-item"><span class="fi">${gi(f.ext)}</span><div class="finfo" onclick='viewStored(${JSON.stringify({name:f.name,blob:f.blob}).replace(/"/g,"&quot;")})'><div class="fn">${f.name}</div><div class="fm">${fs(f.size)} • ${new Date(f.at).toLocaleDateString()}</div></div><button onclick="delStored('${f.id}')" style="background:none;border:none;color:var(--danger);font-size:14px;cursor:pointer;padding:4px 8px">🗑️</button></div>`).join('');
 }
 async function delStored(id){await dbDel(id);renderUploaded();updUC();toast('🗑️ Deleted')}
 async function updUC(){const f=await dbAll();const el=document.getElementById('uc');if(el)el.textContent=f.length}
@@ -600,19 +651,112 @@ async function extractAllZip(){
 }
 
 // ============================================================
-// SYNC (pulls GitHub metadata — offline stores the list)
+// SYNC (pulls bundle from GitHub Pages)
 // ============================================================
-async function syncGitHub(){
-  toast('🔄 Syncing GitHub repos...');
+const BUNDLE_URL='files-bundle.json.gz';
+const BUNDLE_CACHE='pipeline-bundle-v1';
+
+async function syncWorkspaceFiles(force=false){
+  const statusEl=document.getElementById('sync-status');
+  const stored=await dbAll();
+  const wsFiles=stored.filter(f=>f.src==='ws');
+  
+  const lastSync=localStorage.getItem('pipeline-ws-sync');
+  if(!force && wsFiles.length>0 && lastSync && Date.now()-Number(lastSync)<3600000){
+    if(statusEl)statusEl.textContent=`${wsFiles.length} files cached`;
+    return;
+  }
+  
+  if(statusEl)statusEl.textContent='Syncing workspace...';
+  
   try{
-    const res=await fetch('https://api.github.com/users/jtjustinktaylor-lgtm/repos?per_page=100&sort=updated');
-    if(res.ok){
-      const repos=await res.json();
-      localStorage.setItem('pipeline-repos',JSON.stringify(repos));
-      localStorage.setItem('pipeline-sync',Date.now());
-      toast(`✅ Synced ${repos.length} repos!`);
-    }else{toast('⚠️ Sync failed — using cached data')}
-  }catch{toast('📴 Offline — using cached data')}
+    let resp;
+    try{resp=await caches.match(BUNDLE_URL)}catch{}
+    if(!resp)resp=await fetch(BUNDLE_URL);
+    if(!resp||!resp.ok)throw new Error('Bundle fetch failed');
+    
+    const compressed=await resp.arrayBuffer();
+    const ds=new DecompressionStream('gzip');
+    const writer=ds.writable.getWriter();
+    writer.write(new Uint8Array(compressed));
+    writer.close();
+    const reader=ds.readable.getReader();
+    const chunks=[];
+    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value)}
+    const totalLen=chunks.reduce((a,c)=>a+c.length,0);
+    const combined=new Uint8Array(totalLen);
+    let offset=0;
+    for(const chunk of chunks){combined.set(chunk,offset);offset+=chunk.length}
+    
+    const text=new TextDecoder().decode(combined);
+    const files=JSON.parse(text);
+    
+    // Clear old workspace files
+    const tx=db.transaction(STORE,'readwrite');
+    const store=tx.objectStore(STORE);
+    for(const f of wsFiles){store.delete(f.id)}
+    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
+    
+    // Load into IndexedDB in batches
+    const BATCH=50;
+    for(let i=0;i<files.length;i+=BATCH){
+      const batch=files.slice(i,i+BATCH);
+      const tx2=db.transaction(STORE,'readwrite');
+      const s2=tx2.objectStore(STORE);
+      for(const f of batch){
+        const ext2=f.p.split('.').pop().toLowerCase();
+        const blob=new Blob([f.c],{type:'text/plain'});
+        s2.put({
+          id:'ws-'+f.p,
+          name:f.p.split('/').pop(),
+          path:f.p,
+          size:blob.size,
+          type:'text/plain',
+          ext:ext2,
+          blob:blob,
+          at:Date.now(),
+          src:'ws'
+        });
+      }
+      await new Promise((res,rej)=>{tx2.oncomplete=res;tx2.onerror=rej});
+    }
+    
+    localStorage.setItem('pipeline-ws-sync',Date.now().toString());
+    if(statusEl)statusEl.textContent=`${files.length} files synced ✓`;
+    toast(`✅ ${files.length} workspace files loaded!`);
+    renderFiles();
+    updUC();
+    
+  }catch(err){
+    console.error('Sync error:',err);
+    if(statusEl)statusEl.textContent='Sync failed';
+    toast('⚠️ Sync failed — tap 🔄 to retry');
+  }
+}
+
+// ============================================================
+// DRAG & DROP
+// ============================================================
+function setupDD(){
+  const z=document.getElementById('upload-zone');if(!z)return;
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});
+  z.addEventListener('dragleave',()=>z.classList.remove('dragover'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');const f=e.dataTransfer.files;if(f.length){if(Array.from(f).some(x=>x.name.endsWith('.zip'))&&f.length===1)handleZipUpload(f);else handleUpload(f)}});
+}
+
+// ============================================================
+// OFFLINE / SERVICE WORKER
+// ============================================================
+function registerSW(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(e=>console.log('SW error:',e));
+  }
+}
+
+function checkOffline(){
+  const badge=document.getElementById('offline-badge');
+  const update=()=>{badge.classList.toggle('show',!navigator.onLine)};
+  window.addEventListener('online',update);window.addEventListener('offline',update);update();
 }
 
 // ============================================================
@@ -634,151 +778,6 @@ function csvTbl(csv){
 }
 
 // ============================================================
-// DRAG & DROP
-// ============================================================
-function setupDD(){
-  const z=document.getElementById('upload-zone');if(!z)return;
-  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});
-  z.addEventListener('dragleave',()=>z.classList.remove('dragover'));
-  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');const f=e.dataTransfer.files;if(f.length){if(Array.from(f).some(x=>x.name.endsWith('.zip'))&&f.length===1)handleZipUpload(f);else handleUpload(f)}});
-}
-
-// ============================================================
-// OFFLINE / SERVICE WORKER
-// ============================================================
-function registerSW(){
-  if('serviceWorker' in navigator){
-    const swCode=`
-const CACHE='pipeline-v2';
-const ASSETS=['/','/index.html','/files-bundle.json.gz'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
-self.addEventListener('fetch',e=>{
-  if(e.request.url.includes('files-bundle.json.gz')){
-    e.respondWith(caches.match(e.request).then(r=>{if(r)return r;return fetch(e.request).then(res=>{const c=res.clone();caches.open(CACHE).then(cache=>cache.put(e.request,c));return res})}).catch(()=>new Response('',{status:503})));
-    return;
-  }
-  if(e.request.url.includes('cdn.jsdelivr.net')){
-    e.respondWith(caches.match(e.request).then(r=>{if(r)return r;return fetch(e.request).then(res=>{const c=res.clone();caches.open(CACHE).then(cache=>cache.put(e.request,c));return res})}).catch(()=>new Response('',{status:503})));
-    return;
-  }
-  e.respondWith(fetch(e.request).then(res=>{const c=res.clone();if(res.status===200)caches.open(CACHE).then(cache=>cache.put(e.request,c));return res}).catch(()=>caches.match(e.request)));
-});
-`;
-    const blob=new Blob([swCode],{type:'application/javascript'});
-    const url=URL.createObjectURL(blob);
-    navigator.serviceWorker.register(url).then(()=>console.log('SW registered')).catch(e=>console.log('SW error:',e));
-  }
-}
-
-function checkOffline(){
-  const badge=document.getElementById('offline-badge');
-  const update=()=>{badge.classList.toggle('show',!navigator.onLine)};
-  window.addEventListener('online',update);window.addEventListener('offline',update);update();
-}
-
-// ============================================================
-// WORKSPACE FILE SYNC — auto-fetch bundle & load into IndexedDB
-// ============================================================
-const BUNDLE_URL='files-bundle.json.gz';
-const BUNDLE_CACHE='pipeline-bundle-v1';
-
-async function syncWorkspaceFiles(force=false){
-  const statusEl=document.getElementById('sync-status');
-  const stored=await dbAll();
-  const wsFiles=stored.filter(f=>f.src==='ws');
-  
-  // Check if already synced (unless forced)
-  const lastSync=localStorage.getItem('pipeline-ws-sync');
-  if(!force && wsFiles.length>0 && lastSync && Date.now()-Number(lastSync)<3600000){
-    if(statusEl)statusEl.textContent=`${wsFiles.length} files cached`;
-    return;
-  }
-  
-  if(statusEl)statusEl.textContent='Syncing workspace...';
-  
-  try{
-    // Try cache first
-    let data;
-    const cache=await caches.open(BUNDLE_CACHE);
-    let resp=await cache.match(BUNDLE_URL);
-    
-    if(!resp){
-      // Fetch from server
-      resp=await fetch(BUNDLE_URL);
-      if(resp.ok){
-        const clone=resp.clone();
-        cache.put(BUNDLE_URL,clone);
-      }
-    }
-    
-    if(!resp||!resp.ok){
-      if(statusEl)statusEl.textContent='Sync failed — offline?';
-      return;
-    }
-    
-    // Decompress gzipped JSON
-    const compressed=await resp.arrayBuffer();
-    const ds=new DecompressionStream('gzip');
-    const writer=ds.writable.getWriter();
-    writer.write(new Uint8Array(compressed));
-    writer.close();
-    const reader=ds.readable.getReader();
-    const chunks=[];
-    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value)}
-    const totalLen=chunks.reduce((a,c)=>a+c.length,0);
-    const combined=new Uint8Array(totalLen);
-    let offset=0;
-    for(const chunk of chunks){combined.set(chunk,offset);offset+=chunk.length}
-    
-    const text=new TextDecoder().decode(combined);
-    const files=JSON.parse(text);
-    
-    // Clear old workspace files
-    const tx=db.transaction(STORE,'readwrite');
-    const store=tx.objectStore(STORE);
-    for(const f of wsFiles){store.delete(f.id)}
-    
-    // Wait for clear to complete
-    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
-    
-    // Load into IndexedDB in batches
-    const BATCH=50;
-    for(let i=0;i<files.length;i+=BATCH){
-      const batch=files.slice(i,i+BATCH);
-      const tx2=db.transaction(STORE,'readwrite');
-      const s2=tx2.objectStore(STORE);
-      for(const f of batch){
-        const ext=f.p.split('.').pop().toLowerCase();
-        const blob=new Blob([f.c],{type:'text/plain'});
-        s2.put({
-          id:'ws-'+f.p,
-          name:f.p.split('/').pop(),
-          path:f.p,
-          size:blob.size,
-          type:'text/plain',
-          ext:ext,
-          blob:blob,
-          at:Date.now(),
-          src:'ws'
-        });
-      }
-      await new Promise((res,rej)=>{tx2.oncomplete=res;tx2.onerror=rej});
-    }
-    
-    localStorage.setItem('pipeline-ws-sync',Date.now().toString());
-    if(statusEl)statusEl.textContent=`${files.length} files synced ✓`;
-    toast(`✅ ${files.length} workspace files loaded!`);
-    renderFiles();
-    updUC();
-    
-  }catch(err){
-    console.error('Sync error:',err);
-    if(statusEl)statusEl.textContent='Sync error';
-  }
-}
-
-// ============================================================
 // INIT
 // ============================================================
 async function init(){
@@ -789,11 +788,7 @@ async function init(){
   setupDD();
   registerSW();
   checkOffline();
-  
-  // Auto-sync workspace files on first load
   syncWorkspaceFiles();
-  
-  // Pre-cache CDN libs
   caches.open('pipeline-v2').then(c=>{
     c.add('https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js').catch(()=>{});
     c.add('https://cdn.jsdelivr.net/npm/marked@9/marked.min.js').catch(()=>{});

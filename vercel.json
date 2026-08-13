@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "pipeline/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/pipeline(.*)", "dest": "/pipeline/$1" },
+    { "src": "/(.*)", "dest": "/pipeline/$1" }
+  ]
+}
